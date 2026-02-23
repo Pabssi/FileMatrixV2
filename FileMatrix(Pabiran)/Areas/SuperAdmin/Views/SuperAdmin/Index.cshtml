@@ -1,0 +1,476 @@
+@{
+    Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+@section Head {
+    <style>
+        /* Existing styles... */
+        .superadmin-header {
+            margin-bottom: 3rem;
+        }
+
+        .superadmin-header h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.025em;
+            margin-bottom: .5rem;
+        }
+
+        .superadmin-header p {
+            color: #64748b;
+            font-size: 1rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Telemetry Cards */
+        .telemetry-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .telemetry-card:hover {
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+
+        .telemetry-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .telemetry-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.25rem;
+        }
+
+        .telemetry-footer {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .velocity-up { color: #10b981; }
+        .velocity-down { color: #ef4444; }
+
+        .telemetry-chart-mini {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(0deg, rgba(79, 70, 229, 0.05), transparent);
+            border-top: 1px solid rgba(79, 70, 229, 0.1);
+        }
+
+        /* Card Accents */
+        .stat-card-glow {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            padding: 2rem;
+            height: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .content-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .content-card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .content-card-link {
+            font-size: .875rem;
+            color: #4f46e5;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .content-card-link:hover {
+            color: #4338ca;
+            text-decoration: underline;
+        }
+
+        /* Health & Badges */
+        .system-health-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .4rem 1rem;
+            border-radius: 999px;
+            font-size: .8125rem;
+            font-weight: 600;
+        }
+
+        .system-health-badge--healthy {
+            background: #ecfdf5;
+            color: #059669;
+            box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.1);
+        }
+
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            animation: pulse-green 2s infinite;
+        }
+
+        @@keyframes pulse-green {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Lists */
+        .activity-item, .org-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .activity-item:last-child, .org-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon-wrap, .org-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .item-content {
+            flex-grow: 1;
+        }
+
+        .activity-item-title, .org-item-name {
+            font-size: .95rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: .15rem;
+        }
+
+        .activity-item-meta, .org-item-meta {
+            font-size: .8125rem;
+            color: #64748b;
+        }
+
+        /* Storage Bar */
+        .storage-bar {
+            height: 12px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 1.25rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+            border-radius: 999px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        /* Alerts */
+        .alert-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .alert-card--warning { background: #fffbeb; border-color: #fef3c7; color: #92400e; }
+        .alert-card--info { background: #eff6ff; border-color: #dbeafe; color: #1e40af; }
+        .alert-card--success { background: #f0fdf4; border-color: #dcfce7; color: #166534; }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .btn-quick-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #1e293b;
+        }
+
+        .btn-quick-action:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateX(4px);
+            color: #4f46e5;
+        }
+
+        .btn-quick-action.primary {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-quick-action.primary:hover {
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        }
+    </style>
+}
+
+<div class="superadmin-header reveal-on-scroll">
+    <h1>Platform Dashboard</h1>
+    <p>Real-time system health and management overview.</p>
+</div>
+
+<!-- Infrastructure Telemetry Grid -->
+<div class="row g-4 mb-5">
+    <div class="col-6 col-lg-3 reveal-on-scroll">
+        <div class="telemetry-card">
+            <div class="telemetry-label">Cluster Nodes (Orgs)</div>
+            <div class="telemetry-value">@(ViewBag.TotalOrganizations ?? 0)</div>
+            <div class="telemetry-footer">
+                <span class="velocity-up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                    @(ViewBag.RetentionRate ?? "0%")
+                </span>
+                <span class="text-muted small ms-1">active retention</span>
+            </div>
+            <div class="telemetry-chart-mini"></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal-on-scroll" style="transition-delay: 0.1s;">
+        <div class="telemetry-card">
+            <div class="telemetry-label">Elastic Storage Used</div>
+            <div class="telemetry-value">@(ViewBag.StorageUsed ?? "0 B")</div>
+            <div class="telemetry-footer">
+                <span class="velocity-up">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                    @(ViewBag.AvgStorageMB ?? "0") MB
+                </span>
+                <span class="text-muted small ms-1">avg/org</span>
+            </div>
+            <div class="telemetry-chart-mini" style="background: linear-gradient(0deg, rgba(16, 185, 129, 0.05), transparent); border-top-color: rgba(16, 185, 129, 0.1);"></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal-on-scroll" style="transition-delay: 0.2s;">
+        <div class="telemetry-card">
+            <div class="telemetry-label">Inbound Traffic (Users)</div>
+            <div class="telemetry-value">@(ViewBag.TotalUsers ?? 0)</div>
+            <div class="telemetry-footer text-muted">
+                <span>@(ViewBag.RecentSignups ?? 0) new in 24h</span>
+            </div>
+            <div class="telemetry-chart-mini" style="background: linear-gradient(0deg, rgba(245, 158, 11, 0.05), transparent); border-top-color: rgba(245, 158, 11, 0.1);"></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 reveal-on-scroll" style="transition-delay: 0.3s;">
+        <div class="telemetry-card">
+            <div class="telemetry-label">System Heartbeat</div>
+            <div class="telemetry-value">@(ViewBag.SystemHealth ?? "Optimal")</div>
+            <div class="telemetry-footer">
+                <span class="velocity-up">
+                    <div class="health-dot" style="width: 6px; height: 6px; margin-right: 4px;"></div>
+                    @(ViewBag.ActiveSessions ?? 0) online
+                </span>
+            </div>
+            <div class="telemetry-chart-mini" style="background: linear-gradient(0deg, rgba(139, 92, 246, 0.05), transparent); border-top-color: rgba(139, 92, 246, 0.1);"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Operational summary continues below -->
+
+<div class="row g-4 mb-5">
+    <div class="col-md-7 reveal-on-scroll">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5 class="content-card-title">System Health & Telemetry</h5>
+                <div class="system-health-badge system-health-badge--healthy">
+                    <span class="health-dot"></span>
+                    @(ViewBag.SystemHealth ?? "Optimal")
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="p-3 rounded-4 border bg-light bg-opacity-10">
+                        <div class="small text-muted mb-1">Database Load</div>
+                        <div class="fw-bold fs-5">@(ViewBag.DatabaseLoad ?? "0.0")%</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-3 rounded-4 border bg-light bg-opacity-10">
+                        <div class="small text-muted mb-1">API Response Time</div>
+                        <div class="fw-bold fs-5">@(ViewBag.ApiResponseTime ?? "0")ms</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 pt-2 border-top">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small font-weight-bold">System Storage Intensity</span>
+                    <span class="small text-muted">@(ViewBag.StorageUsed ?? "0") / @(ViewBag.StorageLimit ?? "10 TB")</span>
+                </div>
+                <div class="storage-bar">
+                    <div class="storage-bar-fill" style="width: @(ViewBag.StoragePercent ?? "0")%;"></div>
+                </div>
+                <div class="small text-muted mt-2">Elastic cloud storage: @(ViewBag.StoragePercent ?? "0")% utilizing high-speed tiers</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5 reveal-on-scroll" style="transition-delay: 0.15s;">
+        <div class="content-card">
+            <h5 class="content-card-title mb-4">Privacy Compliance Status</h5>
+            <div class="alert-card alert-card--success">
+                <div class="alert-icon">🛡️</div>
+                <div>
+                    <div class="fw-bold">Zero-Content Enforcement</div>
+                    <div class="small opacity-75">Privacy standard active. Content descriptors and binaries are restricted for this session.</div>
+                </div>
+            </div>
+            <div class="alert-card alert-card--info">
+                <div class="alert-icon">⚖️</div>
+                <div>
+                    <div class="fw-bold">Provisioning Limit</div>
+                    <div class="small opacity-75">Platform currently scaled for @(ViewBag.TotalOrganizations ?? 0)/1000 organizations.</div>
+                </div>
+            </div>
+            <div class="alert-card alert-card--info">
+                <div class="alert-icon">🔄</div>
+                <div>
+                    <div class="fw-bold">Audit Trail</div>
+                    <div class="small opacity-75">Last system backfill: Synchronized Storage Metadata (2 days ago).</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8 reveal-on-scroll">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h5 class="content-card-title">Top Organizations by Storage</h5>
+                <a asp-action="Organizations" class="content-card-link">View All<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+            </div>
+            <div class="activity-feed">
+                @if (ViewBag.TopOrganizations != null)
+                {
+                    @foreach (var org in ViewBag.TopOrganizations)
+                    {
+                        <div class="activity-item">
+                            <div class="activity-icon-wrap" style="color:#6366f1;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            </div>
+                            <div class="item-content">
+                                <div class="activity-item-title">@org.Name</div>
+                                <div class="activity-item-meta">Storage: @org.TotalSize</div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="activity-item">
+                        <div class="item-content">
+                            <div class="activity-item-title">No organization data available</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 reveal-on-scroll" style="transition-delay: 0.1s;">
+        <div class="content-card">
+            <h5 class="content-card-title mb-4">Master Operations</h5>
+            <div class="d-flex flex-column gap-3">
+                <a asp-action="ProvisionWorkplace" class="btn-quick-action primary">
+                    Provision New Workspace
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </a>
+                <a href="#" class="btn-quick-action">
+                    User Governance
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </a>
+                <a asp-action="Backfills" class="btn-quick-action">
+                    System Backfills (Backpacks)
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </a>
+                <a href="#" class="btn-quick-action">
+                    Security Policy Engine
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </a>
+                <a href="#" class="btn-quick-action">
+                    Data Restoration Vault
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Dashboard specific scripts if any -->
+}

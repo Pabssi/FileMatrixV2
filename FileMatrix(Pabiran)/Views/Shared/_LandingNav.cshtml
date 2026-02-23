@@ -1,0 +1,36 @@
+@* Floating landing page navigation partial *@
+<nav class="landing-nav position-fixed start-50 translate-middle-x d-flex align-items-center" style="z-index: 1050; top: 24px;">
+    <!-- Brand -->
+    <a class="d-flex align-items-center text-decoration-none landing-nav-brand" asp-controller="Home" asp-action="Index">
+        <img src="~/images/FileMatrix.png" alt="FileMatrix" height="32" class="me-2" />
+        <strong class="landing-nav-logo-text">FileMatrix</strong>
+    </a>
+
+    <!-- Desktop links -->
+    <div class="d-none d-md-flex align-items-center landing-nav-links">
+        <a class="landing-nav-link text-decoration-none" href="#features">Features</a>
+        <a class="landing-nav-link text-decoration-none" href="#benefits">Benefits</a>
+        <a class="landing-nav-link text-decoration-none" href="#how-it-works">How it works</a>
+    </div>
+
+    <!-- Right (desktop) -->
+    <div class="d-none d-md-flex align-items-center ms-auto gap-2">
+        <a class="landing-nav-signin" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="login">Sign In</a>
+        <a class="landing-nav-cta" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="register">Get Started</a>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="d-md-none ms-auto landing-nav-hamburger" type="button" onclick="document.getElementById('landingMobileMenu').classList.toggle('open');" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- Mobile slide-down menu -->
+<div id="landingMobileMenu" class="landing-mobile-menu">
+    <a class="landing-mobile-link" href="#features" onclick="this.parentElement.classList.remove('open')">Features</a>
+    <a class="landing-mobile-link" href="#benefits" onclick="this.parentElement.classList.remove('open')">Benefits</a>
+    <a class="landing-mobile-link" href="#how-it-works" onclick="this.parentElement.classList.remove('open')">How it works</a>
+    <hr class="my-2 opacity-25" />
+    <a class="landing-mobile-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="login" onclick="this.parentElement.classList.remove('open')">Sign In</a>
+    <a class="landing-mobile-cta" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="register" onclick="this.parentElement.classList.remove('open')">Get Started</a>
+</div>

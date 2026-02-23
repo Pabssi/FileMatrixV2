@@ -1,0 +1,834 @@
+@{
+    ViewData["Title"] = "FileMatrix - Home";
+    ViewData["HideMainNav"] = true;
+}
+
+<partial name="_LandingNav" />
+
+<main class="landing-page">
+
+    <!-- ===================== HERO ===================== -->
+    <section class="landing-hero">
+        <div class="landing-hero-bg"></div>
+        <div class="container position-relative">
+            <div class="row align-items-center">
+                <!-- Left Column -->
+                <div class="col-lg-6 mb-5 mb-lg-0 reveal-on-scroll">
+                    <div class="landing-badge">
+                        <span class="landing-badge-dot"></span>
+                        Document Management Platform
+                    </div>
+
+                    <h1 class="landing-hero-title">
+                        Organize documents,<br/>
+                        <span class="landing-hero-title-accent">work efficiently.</span>
+                    </h1>
+
+                    <p class="landing-hero-desc">
+                        FileMatrix helps teams manage documents with precision and security. 
+                        Upload, organize, version-control, and collaborate — all in one place.
+                    </p>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3 mb-5">
+                        <a href="#"
+                           class="landing-btn-primary"
+                           data-bs-toggle="modal"
+                           data-bs-target="#authModal"
+                           data-auth-tab="register">
+                            Get Started Free
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-left:6px;">
+                                <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#features" class="landing-btn-ghost">Learn More</a>
+                    </div>
+
+                    <div class="landing-hero-stats">
+                        <div class="landing-hero-stat">
+                            <div class="landing-hero-stat-value">500+</div>
+                            <div class="landing-hero-stat-label">Organizations</div>
+                        </div>
+                        <div class="landing-hero-stat-divider"></div>
+                        <div class="landing-hero-stat">
+                            <div class="landing-hero-stat-value">2M+</div>
+                            <div class="landing-hero-stat-label">Documents</div>
+                        </div>
+                        <div class="landing-hero-stat-divider"></div>
+                        <div class="landing-hero-stat">
+                            <div class="landing-hero-stat-value">99.9%</div>
+                            <div class="landing-hero-stat-label">Uptime</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Dashboard Preview -->
+                <div class="col-lg-6 reveal-on-scroll">
+                    <div class="landing-hero-card">
+                        <div class="landing-hero-card-header">
+                            <div class="landing-hero-card-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="landing-hero-card-title">FileMatrix Dashboard</span>
+                        </div>
+                        <div class="landing-hero-card-body">
+                            <div class="landing-hero-card-row">
+                                <div class="landing-hero-card-icon" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 7V17C3 18.1 3.9 19 5 19H19C20.1 19 21 18.1 21 17V9C21 7.9 20.1 7 19 7H13L11 5H5C3.9 5 3 5.9 3 7Z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold" style="font-size:0.9rem;color:#1e293b;">Smart Organization</div>
+                                    <div style="font-size:0.78rem;color:#94a3b8;">Auto-categorize and tag documents</div>
+                                </div>
+                                <span class="landing-hero-card-tag" style="background:#eff6ff;color:#3b82f6;">Active</span>
+                            </div>
+                            <div class="landing-hero-card-row">
+                                <div class="landing-hero-card-icon" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6366f1" stroke-width="1.5"/><path d="M8 11V7C8 4.79 9.79 3 12 3C14.21 3 16 4.79 16 7V11" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold" style="font-size:0.9rem;color:#1e293b;">Secure Storage</div>
+                                    <div style="font-size:0.78rem;color:#94a3b8;">256-bit encryption at rest</div>
+                                </div>
+                                <span class="landing-hero-card-tag" style="background:#eef2ff;color:#6366f1;">Enabled</span>
+                            </div>
+                            <div class="landing-hero-card-row">
+                                <div class="landing-hero-card-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 3L4 14H12L11 21L20 10H12L13 3Z" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold" style="font-size:0.9rem;color:#1e293b;">Instant Search</div>
+                                    <div style="font-size:0.78rem;color:#94a3b8;">Find any file in milliseconds</div>
+                                </div>
+                                <span class="landing-hero-card-tag" style="background:#fff7ed;color:#d97706;">Fast</span>
+                            </div>
+                            <div class="landing-hero-card-row">
+                                <div class="landing-hero-card-icon" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#059669" stroke-width="1.5"/></svg>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold" style="font-size:0.9rem;color:#1e293b;">Version Control</div>
+                                    <div style="font-size:0.78rem;color:#94a3b8;">Track every change with rollback</div>
+                                </div>
+                                <span class="landing-hero-card-tag" style="background:#ecfdf5;color:#059669;">v2.4</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- ===================== FEATURES ===================== -->
+    <section id="features" class="landing-section">
+        <div class="container">
+            <div class="text-center mb-5 reveal-on-scroll">
+                <div class="landing-section-badge">Features</div>
+                <h2 class="landing-section-title">Everything you need</h2>
+                <p class="landing-section-subtitle">Powerful features designed for modern document management.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6366f1" stroke-width="1.5"/><path d="M8 11V7C8 4.79 9.79 3 12 3C14.21 3 16 4.79 16 7V11" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Enterprise Security</h5>
+                        <p class="landing-feature-desc">Bank-level encryption with strict compliance and access controls.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 3L4 14H12L11 21L20 10H12L13 3Z" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Instant Search</h5>
+                        <p class="landing-feature-desc">Find any document in milliseconds with intelligent full-text search.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#ec4899" stroke-width="1.5"/><path d="M6 21V19C6 16.79 7.79 15 10 15H14C16.21 15 18 16.79 18 19V21" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Role Management</h5>
+                        <p class="landing-feature-desc">Granular access with Admin, Editor, and Viewer permissions.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 8V12L15 15" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#059669" stroke-width="1.5"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Version Control</h5>
+                        <p class="landing-feature-desc">Track changes with automatic versioning and instant rollback.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 11H5M19 11C20.1 11 21 11.9 21 13V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V13C3 11.9 3.9 11 5 11M19 11V9C19 7.9 18.1 7 17 7M5 11V9C5 7.9 5.9 7 7 7M7 7V5C7 3.9 7.9 3 9 3H15C16.1 3 17 3.9 17 5V7M7 7H17" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Cloud Storage</h5>
+                        <p class="landing-feature-desc">Unlimited storage with automatic backups and high availability.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#fef2f2,#fecaca);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 13H16M8 17H13" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Audit Logs</h5>
+                        <p class="landing-feature-desc">Complete activity tracking for compliance and security monitoring.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 20V10M12 20V4M6 20V14" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Analytics</h5>
+                        <p class="landing-feature-desc">Real-time insights into document usage and team productivity.</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon" style="background:linear-gradient(135deg,#fff7ed,#fed7aa);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 4H10V10H4V4Z" stroke="#ea580c" stroke-width="1.5"/><path d="M14 4H20V10H14V4Z" stroke="#ea580c" stroke-width="1.5"/><path d="M4 14H10V20H4V14Z" stroke="#ea580c" stroke-width="1.5"/><path d="M17 14V20M14 17H20" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <h5 class="landing-feature-title">Smart Workflows</h5>
+                        <p class="landing-feature-desc">Automated approvals and intelligent document routing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== BENEFITS ===================== -->
+    <section id="benefits" class="landing-section landing-section-alt">
+        <div class="container">
+            <div class="text-center mb-5 reveal-on-scroll">
+                <div class="landing-section-badge">Benefits</div>
+                <h2 class="landing-section-title">Why FileMatrix</h2>
+                <p class="landing-section-subtitle">Built for teams that value efficiency and security.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-benefit-card reveal-on-scroll">
+                        <div class="landing-benefit-metric" style="color:#4f46e5;">40%</div>
+                        <div class="landing-benefit-metric-label">faster workflows</div>
+                        <h5 class="landing-benefit-title">Increase Productivity</h5>
+                        <p class="landing-benefit-desc">Streamline workflows and eliminate bottlenecks across your entire team.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-benefit-card reveal-on-scroll">
+                        <div class="landing-benefit-metric" style="color:#0f766e;">256-bit</div>
+                        <div class="landing-benefit-metric-label">encryption</div>
+                        <h5 class="landing-benefit-title">Enterprise Security</h5>
+                        <p class="landing-benefit-desc">Military-grade protection with strong encryption and audit compliance.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-benefit-card reveal-on-scroll">
+                        <div class="landing-benefit-metric" style="color:#ea580c;">10&times;</div>
+                        <div class="landing-benefit-metric-label">faster sharing</div>
+                        <h5 class="landing-benefit-title">Better Collaboration</h5>
+                        <p class="landing-benefit-desc">Work together with real-time sharing, comments, and team workspaces.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-benefit-card reveal-on-scroll">
+                        <div class="landing-benefit-metric" style="color:#1d4ed8;">24/7</div>
+                        <div class="landing-benefit-metric-label">availability</div>
+                        <h5 class="landing-benefit-title">Access Anywhere</h5>
+                        <p class="landing-benefit-desc">Secure access from any device, any location, on or offline.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== HOW IT WORKS ===================== -->
+    <section id="how-it-works" class="landing-section">
+        <div class="container">
+            <div class="text-center mb-5 reveal-on-scroll">
+                <div class="landing-section-badge">Process</div>
+                <h2 class="landing-section-title">How it works</h2>
+                <p class="landing-section-subtitle">Get started in four simple steps.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-step-card reveal-on-scroll">
+                        <div class="landing-step-number">01</div>
+                        <div class="landing-step-line"></div>
+                        <h5 class="landing-step-title">Upload &amp; Organize</h5>
+                        <p class="landing-step-desc">Import documents via upload or drag-and-drop and organize with folders and tags.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-step-card reveal-on-scroll">
+                        <div class="landing-step-number">02</div>
+                        <div class="landing-step-line"></div>
+                        <h5 class="landing-step-title">Structure &amp; Control</h5>
+                        <p class="landing-step-desc">Set permissions, define roles, and configure workflows and version control.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-step-card reveal-on-scroll">
+                        <div class="landing-step-number">03</div>
+                        <div class="landing-step-line"></div>
+                        <h5 class="landing-step-title">Collaborate &amp; Share</h5>
+                        <p class="landing-step-desc">Invite teammates, share documents securely, and collaborate in real time.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="landing-step-card reveal-on-scroll">
+                        <div class="landing-step-number">04</div>
+                        <div class="landing-step-line"></div>
+                        <h5 class="landing-step-title">Monitor &amp; Optimize</h5>
+                        <p class="landing-step-desc">Track usage with analytics and audit logs, then optimize your workflows.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== CTA ===================== -->
+    <section class="landing-cta-section">
+        <div class="landing-cta-bg"></div>
+        <div class="container position-relative reveal-on-scroll">
+            <div class="landing-cta-inner">
+                <h2 class="landing-cta-title">Ready to get started?</h2>
+                <p class="landing-cta-desc">Join hundreds of organizations managing documents smarter with FileMatrix.</p>
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="#"
+                       class="landing-btn-primary landing-btn-lg"
+                       data-bs-toggle="modal"
+                       data-bs-target="#authModal"
+                       data-auth-tab="register">
+                        Get Started Free
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-left:6px;">
+                            <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="#features" class="landing-btn-ghost-light">Explore Features</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+@section Head {
+<style>
+/* ======================================================
+   LANDING PAGE STYLES
+   Consistent design system with header & auth modal
+   ====================================================== */
+
+/* --- Full-width landing page shell --- */
+.landing-page {
+    margin-bottom: -60px; /* negate body margin */
+}
+
+/* --- Hero --- */
+.landing-hero {
+    position: relative;
+    padding: 160px 0 100px;
+    overflow: hidden;
+    background: #fafbfe;
+}
+
+.landing-hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 50% at 70% 0%, rgba(79,70,229,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 0% 50%, rgba(99,102,241,0.04) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.landing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    border-radius: 999px;
+    background: rgba(79,70,229,0.08);
+    color: #4f46e5;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 28px;
+    letter-spacing: 0.02em;
+}
+
+.landing-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4f46e5;
+    animation: badgePulse 2s infinite;
+}
+
+@@keyframes badgePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.landing-hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.12;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+}
+
+.landing-hero-title-accent {
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.landing-hero-desc {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #64748b;
+    max-width: 540px;
+    margin-bottom: 32px;
+}
+
+/* Hero buttons */
+.landing-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(79,70,229,0.35);
+    transition: all 0.25s ease;
+}
+
+.landing-btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    color: #fff;
+    box-shadow: 0 8px 28px rgba(79,70,229,0.5);
+    transform: translateY(-2px);
+}
+
+.landing-btn-lg {
+    padding: 16px 32px;
+    font-size: 1rem;
+}
+
+.landing-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background: transparent;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.landing-btn-ghost:hover {
+    border-color: #cbd5e1;
+    background: rgba(15,23,42,0.03);
+    color: #1e293b;
+}
+
+.landing-btn-ghost-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.landing-btn-ghost-light:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border-color: rgba(255,255,255,0.35);
+}
+
+/* Hero stats */
+.landing-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.landing-hero-stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.landing-hero-stat-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.landing-hero-stat-divider {
+    width: 1px;
+    height: 36px;
+    background: #e2e8f0;
+}
+
+/* Hero card (dashboard preview) */
+.landing-hero-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 50px rgba(15,23,42,0.08), 0 4px 12px rgba(15,23,42,0.04);
+    overflow: hidden;
+    max-width: 520px;
+    margin-left: auto;
+}
+
+.landing-hero-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.landing-hero-card-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.landing-hero-card-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e2e8f0;
+}
+
+.landing-hero-card-dots span:first-child { background: #fca5a5; }
+.landing-hero-card-dots span:nth-child(2) { background: #fde68a; }
+.landing-hero-card-dots span:last-child { background: #86efac; }
+
+.landing-hero-card-title {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.landing-hero-card-body {
+    padding: 10px 20px;
+}
+
+.landing-hero-card-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.landing-hero-card-row:last-child { border-bottom: none; }
+.landing-hero-card-row:hover { background: #fafbfe; }
+
+.landing-hero-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.landing-hero-card-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+
+
+/* --- Sections --- */
+.landing-section {
+    padding: 120px 0;
+    background: #fff;
+}
+
+.landing-section-alt {
+    background: #f8fafc;
+}
+
+.landing-section-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: rgba(79,70,229,0.08);
+    color: #4f46e5;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+}
+
+.landing-section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+}
+
+.landing-section-subtitle {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #64748b;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+/* --- Feature Cards --- */
+.landing-feature-card {
+    padding: 32px 28px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    transition: all 0.25s ease;
+}
+
+.landing-feature-card:hover {
+    border-color: #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79,70,229,0.06);
+    transform: translateY(-3px);
+}
+
+.landing-feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.landing-feature-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.landing-feature-desc {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* --- Benefit Cards --- */
+.landing-benefit-card {
+    padding: 36px 28px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    transition: all 0.25s ease;
+}
+
+.landing-benefit-card:hover {
+    border-color: #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79,70,229,0.06);
+    transform: translateY(-3px);
+}
+
+.landing-benefit-metric {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.landing-benefit-metric-label {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.landing-benefit-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.landing-benefit-desc {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* --- Step Cards --- */
+.landing-step-card {
+    padding: 36px 28px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    position: relative;
+    transition: all 0.25s ease;
+}
+
+.landing-step-card:hover {
+    border-color: #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79,70,229,0.06);
+    transform: translateY(-3px);
+}
+
+.landing-step-number {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: rgba(79,70,229,0.1);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.landing-step-line {
+    width: 32px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    margin-bottom: 16px;
+}
+
+.landing-step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.landing-step-desc {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* --- CTA --- */
+.landing-cta-section {
+    position: relative;
+    padding: 120px 0;
+    overflow: hidden;
+}
+
+.landing-cta-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.landing-cta-bg::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: rgba(79,70,229,0.12);
+    pointer-events: none;
+}
+
+.landing-cta-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    left: -60px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(99,102,241,0.08);
+    pointer-events: none;
+}
+
+.landing-cta-inner {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.landing-cta-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+}
+
+.landing-cta-desc {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 36px;
+}
+
+/* --- Responsive --- */
+@@media (max-width: 991px) {
+    .landing-hero { padding: 130px 0 72px; }
+    .landing-hero-title { font-size: 2.6rem; }
+    .landing-hero-card { max-width: 100%; margin: 40px auto 0; }
+    .landing-section { padding: 88px 0; }
+}
+
+@@media (max-width: 575px) {
+    .landing-hero { padding: 120px 0 56px; }
+    .landing-hero-title { font-size: 2.1rem; }
+    .landing-hero-stats { gap: 16px; flex-wrap: wrap; }
+    .landing-hero-stat-value { font-size: 1.3rem; }
+    .landing-section { padding: 72px 0; }
+    .landing-section-title { font-size: 1.8rem; }
+    .landing-trusted-logos { gap: 24px; }
+    .landing-trusted-logos span { font-size: 0.9rem; }
+    .landing-cta-title { font-size: 1.8rem; }
+    .landing-cta-section { padding: 80px 0; }
+    .landing-feature-card,
+    .landing-benefit-card,
+    .landing-step-card { padding: 28px 22px; }
+}
+</style>
+}

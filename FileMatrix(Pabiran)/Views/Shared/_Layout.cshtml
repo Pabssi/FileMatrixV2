@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FileMatrix_Pabiran_</title>
+    <link rel="icon" type="image/png" href="~/images/FileMatrix.png" />
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FileMatrix_Pabiran_.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    <header>
+        @{
+            // Allow pages to hide the default layout navbar by setting ViewData["HideMainNav"] = true
+            var hideMainNav = (ViewData["HideMainNav"] as bool?) ?? false;
+        }
+
+        @if (!hideMainNav)
+        {
+            <div class="app-navbar-container">
+                <nav class="navbar navbar-expand-lg app-navbar">
+                    <div class="container-fluid">
+                        <a class="app-nav-logo" asp-area="" asp-controller="Home" asp-action="Index">
+                            <img src="~/images/FileMatrix.png" alt="Logo" height="32" />
+                            <span class="landing-nav-logo-text fw-bold">FileMatrix</span>
+                        </a>
+
+                        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                             <span class="navbar-toggler-icon"></span>
+                        </button>
+
+                        <div class="collapse navbar-collapse" id="mainNav">
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item"><a class="app-nav-link" asp-area="Admin" asp-controller="Admin" asp-action="Index">Workplace</a></li>
+                                <li class="nav-item"><a class="app-nav-link" href="#features">Features</a></li>
+                                <li class="nav-item"><a class="app-nav-link" href="#benefits">Benefits</a></li>
+                            </ul>
+
+                            <div class="d-flex align-items-center">
+                                <partial name="~/Views/Shared/_LoginPartial.cshtml" />
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        }
+    </header>
+    <partial name="_AuthModal" />
+    @if (hideMainNav)
+    {
+        <main role="main">
+            @RenderBody()
+        </main>
+    }
+    else
+    {
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    }
+
+    <!-- Global Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+        <div id="globalToast" class="toast premium-toast hide align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <span id="globalToastIcon"></span>
+                    <span id="globalToastMessage" class="fw-medium text-dark"></span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Global Toast Styling */
+        .toast-container { z-index: 2100; }
+        .premium-toast { background: #ffffff !important; border: none !important; border-radius: 1rem !important; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important; padding: 0.5rem; }
+        .premium-toast--success { border-left: 5px solid #10b981 !important; }
+        .premium-toast--error { border-left: 5px solid #ef4444 !important; }
+    </style>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/auth-modal.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Global Toast Notification System
+        function showToast(message, type = 'success') {
+            const toastEl = document.getElementById('globalToast');
+            if (!toastEl) return;
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            
+            const iconEl = document.getElementById('globalToastIcon');
+            const messageEl = document.getElementById('globalToastMessage');
+            
+            toastEl.classList.remove('premium-toast--success', 'premium-toast--error');
+            toastEl.classList.add(type === 'success' ? 'premium-toast--success' : 'premium-toast--error');
+            
+            if (type === 'success') {
+                iconEl.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+            } else {
+                iconEl.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+            }
+            
+            messageEl.innerText = message;
+            toast.show();
+        }
+
+        $(document).ready(function() {
+            // Auto-trigger login modal if ReturnUrl is present (means unauthorized redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('ReturnUrl')) {
+                const modalEl = document.getElementById('authModal');
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
+                    const authModal = new bootstrap.Modal(modalEl);
+                    authModal.show();
+                }
+            }
+
+            // Handle TempData messages on load
+            @if (TempData["SuccessMessage"] != null) {
+                <text>showToast('@Html.Raw(TempData["SuccessMessage"])', 'success');</text>
+            }
+            @if (TempData["ErrorMessage"] != null) {
+                <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+            }
+
+            // Specialized Invite Login Prompt
+            @if (TempData["InviteLoginPrompt"] != null) {
+                <text>
+                (function() {
+                    const modalEl = document.getElementById('authModal');
+                    const alertContainer = document.getElementById('authModalAlertContainer');
+                    if (modalEl && alertContainer && window.bootstrap && bootstrap.Modal) {
+                        alertContainer.innerHTML = `
+                            <div class="alert alert-primary d-flex align-items-center gap-2 border-0 shadow-sm" style="background: rgba(99, 102, 241, 0.1); color: #4f46e5; border-radius: 12px; margin-bottom: 1.5rem;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                <span class="fw-bold small">@Html.Raw(TempData["InviteLoginPrompt"])</span>
+                            </div>
+                        `;
+                        const authModal = new bootstrap.Modal(modalEl);
+                        authModal.show();
+                    }
+                })();
+                </text>
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

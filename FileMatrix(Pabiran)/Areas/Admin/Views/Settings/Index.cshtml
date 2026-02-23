@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "Workplace Settings";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-5 reveal-on-scroll">
+        <h2 class="fw-extrabold text-dark mb-1">Settings</h2>
+        <p class="text-muted fw-medium">Manage your personal account and workplace configurations.</p>
+    </div>
+
+    <!-- Personal Settings Section -->
+    <div class="mb-5 reveal-on-scroll">
+        <div class="d-flex align-items-center mb-4">
+            <h4 class="fw-bold text-dark mb-0 fs-5">Personal Account</h4>
+            <div class="ms-3 h-px bg-slate-subtle flex-grow-1 opacity-25"></div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Profile Card -->
+            <div class="col-md-6 col-xl-4">
+                <a asp-action="Profile" class="text-decoration-none h-100 d-block">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 premium-settings-card transition-all">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="settings-icon-box bg-indigo-subtle text-indigo rounded-4 me-3">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">My Profile</h5>
+                                    <small class="text-muted fw-semibold text-uppercase ls-wide" style="font-size: 0.65rem;">Contact & Bio</small>
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">Update your name, email, and public display information for your team.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Security Card -->
+            <div class="col-md-6 col-xl-4">
+                <a asp-action="Security" class="text-decoration-none h-100 d-block">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 premium-settings-card transition-all">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="settings-icon-box bg-warning-subtle text-warning rounded-4 me-3">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">Login & Security</h5>
+                                    <small class="text-muted fw-semibold text-uppercase ls-wide" style="font-size: 0.65rem;">Password & 2FA</small>
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">Change your password and enable Two-Factor Authentication (2FA) for extra security.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workplace Management Section -->
+    <div class="mb-5 reveal-on-scroll">
+        <div class="d-flex align-items-center mb-4">
+            <h4 class="fw-bold text-dark mb-0 fs-5">Workplace Management</h4>
+            <div class="ms-3 h-px bg-slate-subtle flex-grow-1 opacity-25"></div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Integrations Card -->
+            <div class="col-md-6 col-xl-4">
+                <a asp-action="Integrations" class="text-decoration-none h-100 d-block">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 premium-settings-card transition-all">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="settings-icon-box bg-primary-subtle text-primary rounded-4 me-3">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">External Integrations</h5>
+                                    <small class="text-muted fw-semibold text-uppercase ls-wide" style="font-size: 0.65rem;">API Keys & Webhooks</small>
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">Connect POS systems, accounting software, and automate your document workflows with secure API keys.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Coming Soon Placeholder -->
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 opacity-75 placeholder-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="settings-icon-box bg-slate-subtle text-slate rounded-4 me-3">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark">Custom Branding</h5>
+                                <small class="text-muted fw-semibold text-uppercase ls-wide" style="font-size: 0.65rem;">Coming Soon</small>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-0">Personalize your workplace with custom logos, themes, and email templates for a consistent brand experience.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+    .ls-wide { letter-spacing: 0.05em; }
+    
+    .settings-icon-box {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .premium-settings-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .premium-settings-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 10px 10px -5px rgba(79, 70, 229, 0.04) !important;
+        border-color: #6366f1 !important;
+    }
+
+    .premium-settings-card:hover .settings-icon-box {
+        transform: scale(1.1);
+    }
+    
+    .placeholder-card {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1 !important;
+    }
+
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .bg-indigo-subtle { background-color: rgba(79, 70, 229, 0.08) !important; }
+    .text-indigo { color: #4f46e5 !important; }
+    .bg-warning-subtle { background-color: rgba(245, 158, 11, 0.08) !important; }
+    .text-warning { color: #f59e0b !important; }
+    .bg-primary-subtle { background-color: rgba(37, 99, 235, 0.08) !important; }
+    .text-primary { color: #2563eb !important; }
+    .bg-slate-subtle { background-color: #f1f5f9 !important; }
+    .text-slate { color: #64748b !important; }
+</style>

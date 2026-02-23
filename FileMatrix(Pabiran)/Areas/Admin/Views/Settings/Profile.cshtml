@@ -1,0 +1,166 @@
+@model FileMatrix_Pabiran_.Models.User
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-5 reveal-on-scroll">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index" class="text-indigo text-decoration-none fw-bold small">Settings</a></li>
+                <li class="breadcrumb-item active fw-bold text-muted small" aria-current="page">My Profile</li>
+            </ol>
+        </nav>
+        <h2 class="fw-extrabold text-dark mb-1">My Profile</h2>
+        <p class="text-muted fw-medium">Manage your personal information and how you appear to others.</p>
+    </div>
+
+    <div class="row g-4 reveal-on-scroll">
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden premium-card transition-all">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="UpdateProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label fw-bold text-muted small text-uppercase ls-wide">First Name</label>
+                                <input asp-for="FirstName" class="form-control premium-form-control py-3 rounded-3" placeholder="Enter your first name">
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label fw-bold text-muted small text-uppercase ls-wide">Last Name</label>
+                                <input asp-for="LastName" class="form-control premium-form-control py-3 rounded-3" placeholder="Enter your last name">
+                            </div>
+                            <div class="col-12 mt-4">
+                                <label asp-for="DisplayName" class="form-label fw-bold text-muted small text-uppercase ls-wide">Display Name</label>
+                                <input asp-for="DisplayName" class="form-control premium-form-control py-3 rounded-3" placeholder="e.g. Alex Smith">
+                                <div class="form-text small text-muted">This is how your name will appear in comments and document history.</div>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <label asp-for="Email" class="form-label fw-bold text-muted small text-uppercase ls-wide">Email Address</label>
+                                <input asp-for="Email" class="form-control premium-form-control py-3 rounded-3" type="email">
+                                <div class="form-text small text-muted">Primary email for notifications and account recovery.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-4 border-top d-flex gap-2">
+                            <button type="submit" class="btn btn-indigo-gradient text-white rounded-pill px-5 fw-bold shadow-sm py-2 border-0">
+                                Save Changes
+                            </button>
+                            <a asp-action="Index" class="btn btn-light rounded-pill px-4 fw-bold py-2 border-0">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <!-- Profile Avatar Card -->
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4 mb-4 premium-card transition-all">
+                <div class="mb-4 d-flex justify-content-center">
+                    <div class="profile-avatar-large bg-indigo-gradient text-white rounded-circle fw-bold shadow-lg d-flex align-items-center justify-content-center">
+                        @(Model.FirstName?.Substring(0, 1))@(Model.LastName?.Substring(0, 1))
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-1">@Model.DisplayName</h5>
+                <p class="text-muted small mb-0">Member since @Model.CreatedAt.ToString("MMMM yyyy")</p>
+                <div class="mt-4 pt-3 border-top">
+                    <button class="btn btn-outline-indigo btn-sm rounded-pill px-4 fw-bold">Change Avatar</button>
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="card border-0 shadow-sm rounded-4 premium-card transition-all">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4 text-uppercase small text-muted ls-wide">Account Status</h6>
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                        <span class="text-muted small">Account Type</span>
+                        <span class="badge bg-indigo-subtle text-indigo rounded-pill px-3 py-2 fw-bold">
+                            @(Model.Role == 1 ? "System Admin" : "Standard")
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Workplace Access</span>
+                        <span class="text-dark fw-bold small bg-light px-3 py-2 rounded-pill" style="white-space:nowrap;">
+                            @{
+                                var membership = ViewBag.CurrentMembership as FileMatrix_Pabiran_.Models.WorkplaceMember;
+                            }
+                            @(membership?.RoleID == 1 ? "Administrator" : membership?.RoleID == 2 ? "Editor" : "Viewer")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+    .ls-wide { letter-spacing: 0.05em; }
+    
+    .premium-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .premium-card:hover {
+        border-color: #c7d2fe !important;
+        box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.05) !important;
+    }
+
+    .premium-form-control {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .premium-form-control:focus {
+        background-color: #ffffff;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-indigo-gradient {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        transition: all 0.3s ease;
+    }
+
+    .btn-indigo-gradient:hover {
+        background: linear-gradient(135deg, #4338ca, #4f46e5);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-outline-indigo {
+        color: #4f46e5;
+        border: 2px solid rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-outline-indigo:hover {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+        color: #fff;
+    }
+
+    .profile-avatar-large {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #4f46e5, #818cf8);
+    }
+
+    .bg-indigo-gradient {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+    }
+
+    .bg-indigo-subtle { background-color: rgba(79, 70, 229, 0.08) !important; }
+    .text-indigo { color: #4f46e5 !important; }
+
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+</style>

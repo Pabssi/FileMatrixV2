@@ -1,0 +1,316 @@
+@model FileMatrix_Pabiran_.Models.Workplace
+@{
+    ViewData["Title"] = "Create Workspace";
+    ViewData["HideMainNav"] = true;
+}
+
+<partial name="_OrgNav" />
+
+@section Head {
+    <style>
+        .orgs-page-wrapper {
+            min-height: 100vh;
+            background: radial-gradient(circle at 100% 0%, #f1f5f9 0%, #f8fafc 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .orgs-bg-accent {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.04) 0%, rgba(79, 70, 229, 0) 70%);
+            border-radius: 50%;
+            bottom: -100px;
+            right: -100px;
+            z-index: 0;
+        }
+
+        .orgs-form-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 580px;
+        }
+
+        .orgs-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .orgs-brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 100px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+
+        .orgs-brand-dot {
+            width: 8px;
+            height: 8px;
+            background: #4f46e5;
+            border-radius: 50%;
+        }
+
+        .orgs-brand-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .orgs-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .form-card {
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.04);
+        }
+
+        .form-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .btn-back {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background: #fff;
+            color: #4f46e5;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 10px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .premium-input {
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            padding: 12px 18px;
+            font-size: 1rem;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            background: #fcfdfe;
+        }
+
+        .premium-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Modern Radio Tiles */
+        .workspace-type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .type-tile {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .type-tile input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .type-content {
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            background: #fcfdfe;
+            text-align: center;
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .type-label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .type-desc {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .type-tile input:checked + .type-content {
+            border-color: #4f46e5;
+            background: #f5f3ff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .type-tile input:checked + .type-content .type-label {
+            color: #4f46e5;
+        }
+
+        .btn-submit-premium {
+            width: 100%;
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.5);
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+        }
+
+        .btn-submit-premium:active {
+            transform: translateY(0);
+        }
+
+        .validation-summary-errors ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            color: #ef4444;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @@media (max-width: 576px) {
+            .workspace-type-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-card {
+                padding: 24px;
+            }
+        }
+    </style>
+}
+
+<div class="orgs-page-wrapper">
+    <div class="orgs-bg-accent"></div>
+
+    <div class="orgs-form-container">
+        <div class="orgs-header">
+            <div class="orgs-brand-badge">
+                <div class="orgs-brand-dot"></div>
+                <span class="orgs-brand-text">Setup Wizard</span>
+            </div>
+            <h1 class="orgs-title">Create Your Workspace</h1>
+        </div>
+
+        <div class="form-card">
+            <div class="form-card-header">
+                <a asp-action="Index" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                </a>
+                <div>
+                    <h2 class="mb-0" style="font-size: 1.25rem; font-weight: 700; color: #0f172a;">New Workspace</h2>
+                    <p class="text-muted mb-0 small">Configure your instance in seconds</p>
+                </div>
+            </div>
+
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="mb-4"></div>
+
+                <div class="mb-4">
+                    <label asp-for="Name" class="form-label">Workspace Name</label>
+                    <input asp-for="Name" class="form-control premium-input" placeholder="e.g. Acme Studio" />
+                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label">Purpose</label>
+                    <div class="workspace-type-grid">
+                        <label class="type-tile">
+                            <input asp-for="Description" type="radio" value="Business" checked />
+                            <div class="type-content">
+                                <span class="type-label">Business</span>
+                                <span class="type-desc">For companies</span>
+                            </div>
+                        </label>
+                        <label class="type-tile">
+                            <input asp-for="Description" type="radio" value="Team" />
+                            <div class="type-content">
+                                <span class="type-label">Team</span>
+                                <span class="type-desc">For groups</span>
+                            </div>
+                        </label>
+                        <label class="type-tile">
+                            <input asp-for="Description" type="radio" value="Personal" />
+                            <div class="type-content">
+                                <span class="type-label">Personal</span>
+                                <span class="type-desc">Individual</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit-premium">
+                    Launch Workspace
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="small text-muted">
+                By creating a workspace, you agree to our 
+                <a href="#" class="text-decoration-none fw-semibold" style="color: #64748b;">Terms of Service</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+

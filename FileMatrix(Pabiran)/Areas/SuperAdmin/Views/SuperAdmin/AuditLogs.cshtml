@@ -1,0 +1,113 @@
+@{
+    Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "System Audit Logs";
+}
+
+@section Head {
+    <style>
+        .log-table-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .table thead th {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+        }
+
+        .table tbody td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            color: #1e293b;
+            font-size: .8125rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .log-action-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .log-action--create { background: #ecfdf5; color: #059669; }
+        .log-action--update { background: #eff6ff; color: #1e40af; }
+        .log-action--delete { background: #fef2f2; color: #dc2626; }
+        .log-action--login { background: #f5f3ff; color: #5b21b6; }
+
+        .log-timestamp {
+            font-family: 'JetBrains Mono', monospace;
+            color: #64748b;
+        }
+
+        .log-details {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+}
+
+<div class="superadmin-header reveal-on-scroll">
+    <h1>Audit Logs</h1>
+    <p>Complete traceability of all system-wide administrative actions.</p>
+</div>
+
+<div class="log-table-card reveal-on-scroll">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User ID</th>
+                    <th>Action</th>
+                    <th>Entity Type</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.Logs != null && ((IEnumerable<dynamic>)ViewBag.Logs).Any())
+                {
+                    foreach (var log in ViewBag.Logs)
+                    {
+                        <tr>
+                            <td class="log-timestamp">@log.PerformedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td><span class="badge bg-light text-dark">#@log.UserID</span></td>
+                            <td>
+                                <span class="log-action-badge @(log.Action?.ToLower().Contains("create") == true ? "log-action--create" : log.Action?.ToLower().Contains("update") == true ? "log-action--update" : log.Action?.ToLower().Contains("delete") == true ? "log-action--delete" : "log-action--login")">
+                                    @log.Action
+                                </span>
+                            </td>
+                            <td><span class="text-muted">@log.EntityType</span></td>
+                            <td>
+                                <div class="log-details" title="@log.Details">@log.Details</div>
+                            </td>
+                            <td class="text-muted">@log.IpAddress</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted mb-2">No audit logs found in the system.</div>
+                            <small class="text-muted opacity-50">New activity will appear here automatically.</small>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

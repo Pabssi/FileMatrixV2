@@ -1,0 +1,52 @@
+<!-- Version History Modal -->
+<div class="modal fade" id="versionHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow border-0 overflow-hidden">
+            <div class="modal-header history-bg-gradient border-0 pb-4" style="background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: white !important;">
+                <div class="pt-2">
+                    <h5 class="modal-title fw-bold" id="historyModalTitle">Version History</h5>
+                    <div id="historyModalSubtitle" class="small opacity-75">Track and manage changes over time</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light" style="max-height: 70vh; overflow-y: auto;">
+                @{
+                    var membership = ViewBag.CurrentMembership as FileMatrix_Pabiran_.Models.WorkplaceMember;
+                    var canEdit = membership?.RoleID <= 2;
+                }
+
+                @if (canEdit)
+                {
+                    <!-- Upload Section -->
+                    <label for="version-file-input" class="upload-area w-100 d-block mb-4" id="version-upload-trigger">
+                        <div class="d-flex flex-column align-items-center gap-2">
+                            <div class="p-2 bg-primary-subtle rounded-circle">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            </div>
+                            <span class="fw-bold text-primary">Upload New Version</span>
+                        </div>
+                    </label>
+                    <!-- Hidden input moved outside to prevent recursive click events -->
+                    <input type="file" id="version-file-input" class="d-none" />
+
+                    <div id="upload-form-area" style="display: none;" class="mb-4 p-3 bg-white rounded-3 shadow-sm border">
+                        <h6 class="fw-bold mb-3">New Version Details</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">CHANGE NOTES</label>
+                            <textarea id="version-notes-input" class="form-control" placeholder="What changed in this version?" rows="2"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light btn-sm fw-bold" id="cancel-version-upload">Cancel</button>
+                            <button type="button" class="btn btn-primary btn-sm fw-bold px-3" id="submit-version-upload">Submit Changes</button>
+                        </div>
+                    </div>
+                }
+
+                <!-- Timeline Section -->
+                <div class="version-timeline" id="version-history-timeline">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

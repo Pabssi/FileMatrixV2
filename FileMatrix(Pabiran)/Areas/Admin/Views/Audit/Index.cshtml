@@ -1,0 +1,168 @@
+  @model IEnumerable<FileMatrix_Pabiran_.Models.AuditLog>
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Audit Log";
+    var actionTypes = ViewBag.ActionTypes as List<string> ?? new List<string>();
+}
+
+@section Head {
+    <style>
+        .audit-page-header { margin-bottom: 1.5rem; }
+        .audit-page-title { font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: .25rem; }
+        .audit-page-subtitle { font-size: .875rem; color: #6b7280; margin: 0; }
+
+        .audit-stat-card {
+            background: #ffffff;
+            border-radius: .9rem;
+            border: 1px solid #e5e7eb;
+            padding: 1.1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .audit-stat-icon { width: 40px; height: 40px; border-radius: .5rem; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .audit-stat-value { font-size: 1.3rem; font-weight: 600; color: #111827; line-height: 1.1; }
+        .audit-stat-label { font-size: .8rem; color: #6b7280; }
+
+        .audit-search-bar {
+            border-radius: .75rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: .75rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .audit-search-input { border-radius: 999px; border-color: #e5e7eb; font-size: .875rem; padding-inline: 1rem; height: 2.5rem; }
+
+        .audit-timeline { background: #ffffff; border-radius: .9rem; border: 1px solid #e5e7eb; padding: 1.5rem; }
+        .audit-timeline-line { border-left: 2px solid #e0e7ff; margin-left: .75rem; padding-left: 1.5rem; }
+
+        .audit-entry { position: relative; margin-bottom: 2rem; }
+        .audit-entry:last-child { margin-bottom: 0; }
+        .audit-entry-dot { position: absolute; left: -1.75rem; top: .35rem; width: 12px; height: 12px; border-radius: 999px; background: #6366f1; box-shadow: 0 0 0 3px #e0e7ff; }
+
+        .audit-entry-badge { display: inline-block; border-radius: 999px; padding: .2rem .6rem; font-size: .7rem; font-weight: 600; text-transform: uppercase; margin-bottom: .5rem; background: #f1f5f9; color: #475569; }
+        .audit-entry-time { font-size: .75rem; color: #94a3b8; font-weight: 500; }
+        .audit-entry-content { font-size: .875rem; color: #475569; line-height: 1.5; }
+        .audit-entry-user { font-weight: 700; color: #1e293b; }
+    </style>
+}
+
+<div class="audit-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 reveal-on-scroll">
+    <div>
+        <h1 class="audit-page-title">Activity Log</h1>
+        <p class="audit-page-subtitle">Consolidated system activities for <strong>@ViewBag.CurrentWorkplace?.Name</strong>.</p>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+        Export History
+    </button>
+</div>
+
+<div class="row g-3 mb-4 reveal-on-scroll">
+    <div class="col-md-3">
+        <div class="audit-stat-card">
+            <div class="audit-stat-icon" style="background:#eff6ff;color:#2563eb;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </div>
+            <div>
+                <div class="audit-stat-value">@ViewBag.TotalEvents</div>
+                <div class="audit-stat-label">Total Events</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="audit-stat-card">
+            <div class="audit-stat-icon" style="background:#ecfdf5;color:#047857;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div>
+                <div class="audit-stat-value">@ViewBag.DocumentActions</div>
+                <div class="audit-stat-label">Documents</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="audit-stat-card">
+            <div class="audit-stat-icon" style="background:#f3e8ff;color:#7c3aed;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <div>
+                <div class="audit-stat-value">@ViewBag.UserActions</div>
+                <div class="audit-stat-label">User Actions</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="audit-stat-card">
+            <div class="audit-stat-icon" style="background:#fff7ed;color:#c2410c;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div>
+                <div class="audit-stat-value">@ViewBag.TodayEvents</div>
+                <div class="audit-stat-label">Today</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Index" method="get" class="audit-search-bar d-flex flex-wrap align-items-center gap-2 reveal-on-scroll">
+    <div class="flex-grow-1">
+        <input type="text" name="query" value="@ViewBag.Query"
+               class="form-control audit-search-input"
+               placeholder="Search logs by user, details, or entity..." />
+    </div>
+    <select name="actionFilter" class="form-select form-select-sm" style="max-width: 180px;border-radius:999px;height:2.5rem;" onchange="this.form.submit()">
+        <option value="">All Actions</option>
+        @foreach (var action in actionTypes)
+        {
+            <option value="@action" selected="@(ViewBag.ActionFilter == action)">@action</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-dark rounded-pill px-3 fw-bold h-100" style="height:2.5rem !important;">Filter</button>
+</form>
+
+<div class="audit-timeline reveal-on-scroll">
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <p class="text-muted m-0">No activity logs found matching your filters.</p>
+        </div>
+    }
+    else
+    {
+        <div class="audit-timeline-line">
+            @foreach (var log in Model)
+            {
+                <div class="audit-entry">
+                    <div class="audit-entry-dot"></div>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="audit-entry-badge">@log.Action (@log.EntityType)</span>
+                            <div class="audit-entry-content">
+                                <span class="audit-entry-user">
+                                    @(log.User != null ? (log.User.DisplayName ?? log.User.Username) : "System")
+                                </span><br />
+                                @log.Details
+                            </div>
+                        </div>
+                        <span class="audit-entry-time" title="@log.PerformedAt.ToString("g")">
+                            @GetTimeAgo(log.PerformedAt)
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions {
+    string GetTimeAgo(DateTime dateTime)
+    {
+        var span = DateTime.UtcNow - dateTime;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        return dateTime.ToString("MMM dd");
+    }
+}

@@ -1,0 +1,263 @@
+@{
+    Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "System Documents Explorer";
+}
+
+@section Head {
+    <style>
+        .doc-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .table thead th {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: .8125rem;
+            text-transform: capitalize;
+            font-weight: 700;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .table tbody td {
+            padding: 1.25rem 1.5rem;
+            vertical-align: middle;
+            color: #1e293b;
+            font-size: .875rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .doc-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4f46e5;
+            border: 1px solid #e2e8f0;
+        }
+
+        .org-tag {
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+        }
+
+        .version-badge {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .privacy-lock {
+            color: #10b981;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .modal-metadata-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-metadata-value {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<div class="superadmin-header reveal-on-scroll">
+    <div class="d-flex align-items-center gap-3">
+        <h1>All Documents</h1>
+        <div class="privacy-lock">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Zero-Content Privacy Active
+        </div>
+    </div>
+    <p>Infrastructure visibility across organizational cluster nodes.</p>
+</div>
+
+<div class="doc-card reveal-on-scroll">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Workspace</th>
+                    <th>Latest Version</th>
+                    <th>Size</th>
+                    <th>Created At</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.Documents != null && ((IEnumerable<dynamic>)ViewBag.Documents).Any())
+                {
+                    foreach (var doc in ViewBag.Documents)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="doc-icon-wrap">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    </div>
+                                    <div class="fw-bold">@doc.Title</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="org-tag">@doc.WorkplaceName</span>
+                            </td>
+                            <td>
+                                <span class="version-badge">v@doc.VersionCount</span>
+                            </td>
+                            <td class="text-muted">
+                                @if (doc.Size != null)
+                                {
+                                    @((doc.Size / 1024.0).ToString("F2")) @:KB
+                                }
+                                else
+                                {
+                                    @:0 KB
+                                }
+                            </td>
+                            <td class="text-muted">@(((DateTime)doc.CreatedAt).ToString("MMM dd, yyyy"))</td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button onclick="viewMetadata(@doc.DocumentID)" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                                        Metadata
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted">No documents discovered in the platform registry.</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Metadata Modal -->
+<div class="modal fade" id="metadataModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="modal-title fw-bold" id="modalDocTitle">Document Metadata</h5>
+                    <div class="privacy-lock mt-1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        Content Restricted
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="modal-metadata-label">Organization</div>
+                        <div id="modalOrg" class="modal-metadata-value">---</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="modal-metadata-label">Status</div>
+                        <div id="modalStatus" class="modal-metadata-value">---</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="modal-metadata-label">Created At</div>
+                        <div id="modalCreated" class="modal-metadata-value">---</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="modal-metadata-label">Last Updated</div>
+                        <div id="modalUpdated" class="modal-metadata-value">---</div>
+                    </div>
+                </div>
+                
+                <div class="p-3 rounded-4 bg-light border mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold small">Latest Infrastructure Version</span>
+                        <span id="modalVersion" class="version-badge">v1.0</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="modal-metadata-label">MIME Type</div>
+                            <div id="modalMime" class="small fw-semibold">---</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="modal-metadata-label">Total Size</div>
+                            <div id="modalSize" class="small fw-semibold">---</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 small mb-0">
+                    <div class="d-flex gap-2">
+                        <span class="fs-5">ℹ️</span>
+                        <div>
+                            <strong>Platform Privacy Standard:</strong> Document descriptions, comments, and binaries are only accessible to authorized organization members and cannot be accessed by platform administrators.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal" style="border-radius: 12px; font-weight: 600;">Close Information</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewMetadata(docId) {
+            const modal = new bootstrap.Modal(document.getElementById('metadataModal'));
+            
+            // Fetch metadata
+            fetch(`/SuperAdmin/Documents/Metadata/${docId}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        const d = result.data;
+                        document.getElementById('modalDocTitle').textContent = d.title;
+                        document.getElementById('modalOrg').textContent = d.organization || 'Internal';
+                        document.getElementById('modalStatus').textContent = d.status || 'Published';
+                        document.getElementById('modalCreated').textContent = new Date(d.createdAt).toLocaleDateString();
+                        document.getElementById('modalUpdated').textContent = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : 'Never';
+                        
+                        if (d.latestVersion) {
+                            document.getElementById('modalVersion').textContent = 'v' + d.latestVersion.versionNumber.toFixed(1);
+                            document.getElementById('modalMime').textContent = d.latestVersion.mimeType || 'unknown';
+                            document.getElementById('modalSize').textContent = (d.latestVersion.fileSizeBytes / 1024.0).toFixed(2) + ' KB';
+                        }
+                        
+                        modal.show();
+                    }
+                })
+                .catch(err => console.error('Failed to fetch metadata:', err));
+        }
+    </script>
+}

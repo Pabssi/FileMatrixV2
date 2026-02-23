@@ -1,0 +1,296 @@
+using FileMatrix_Pabiran_.Data;
+using FileMatrix_Pabiran_.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Use default Identity with int keys to match the existing database
+builder.Services.AddDefaultIdentity<IdentityUser<int>>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole<int>>() // Add roles support if needed
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<FileMatrix_Pabiran_.Services.DocumentService>();
+builder.Services.AddScoped<FileMatrix_Pabiran_.Services.EmailSenderService>();
+builder.Services.AddHostedService<FileMatrix_Pabiran_.Services.RetentionWorker>();
+
+// Configure Identity to redirect to the landing page for unauthorized requests
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/";
+    options.AccessDeniedPath = "/";
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Legacy /Documents Redirects
+app.MapGet("/Documents/Details/{id}", (int id, string? token) => 
+    Results.Redirect($"/Admin/Documents/Details/{id}{(string.IsNullOrEmpty(token) ? "" : $"?token={token}")}", true));
+app.MapGet("/Documents", () => Results.Redirect("/Admin/Admin/Dashboard", true));
+app.MapGet("/Documents/Index", () => Results.Redirect("/Admin/Admin/Dashboard", true));
+
+app.MapStaticAssets();
+
+// Area routes must be registered before the default route so area controllers
+// (like Areas/Admin/Controllers/AdminController) can be matched by URLs like
+// "/Admin/Admin". Register a general area route first.
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
+app.MapRazorPages()
+   .WithStaticAssets();
+
+// Ensure legacy Users table has Identity-normalized columns used by UserManager lookups.
+// Some deployments created a Users table without the Identity "NormalizedUserName"/
+// "NormalizedEmail" columns; add them and backfill values at startup if missing so
+// Identity's LINQ queries can be translated to SQL.
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<FileMatrix_Pabiran_.Data.ApplicationDbContext>();
+        // Add NormalizedUserName if missing
+        db.Database.ExecuteSqlRaw(@"
+IF COL_LENGTH('Users','NormalizedUserName') IS NULL
+BEGIN
+    ALTER TABLE [Users] ADD [NormalizedUserName] NVARCHAR(256) NULL;
+END");
+
+        // Add NormalizedEmail if missing
+        db.Database.ExecuteSqlRaw(@"
+IF COL_LENGTH('Users','NormalizedEmail') IS NULL
+BEGIN
+    ALTER TABLE [Users] ADD [NormalizedEmail] NVARCHAR(256) NULL;
+END");
+
+        // Backfill normalized values where empty
+        db.Database.ExecuteSqlRaw(@"
+UPDATE [Users]
+SET [NormalizedUserName] = UPPER([Username])
+WHERE [NormalizedUserName] IS NULL OR [NormalizedUserName] = '';
+
+UPDATE [Users]
+SET [NormalizedEmail] = UPPER([Email])
+WHERE [NormalizedEmail] IS NULL OR [NormalizedEmail] = '';
+
+IF OBJECT_ID('SystemSettings', 'U') IS NULL
+BEGIN
+    CREATE TABLE [SystemSettings] (
+        [ID] INT IDENTITY(1,1) NOT NULL,
+        [Key] NVARCHAR(100) NOT NULL,
+        [Value] NVARCHAR(MAX) NOT NULL,
+        [Description] NVARCHAR(MAX) NULL,
+        [LastUpdated] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+        CONSTRAINT [PK_SystemSettings] PRIMARY KEY ([ID])
+    );
+    CREATE UNIQUE INDEX [IX_SystemSettings_Key] ON [SystemSettings] ([Key]);
+END
+
+IF COL_LENGTH('Documents','IsFavorite') IS NULL
+BEGIN
+    ALTER TABLE [Documents] ADD [IsFavorite] BIT NOT NULL DEFAULT 0;
+END
+
+IF COL_LENGTH('Documents','Status') IS NULL
+BEGIN
+    ALTER TABLE [Documents] ADD [Status] NVARCHAR(20) NOT NULL DEFAULT 'Published';
+END
+
+IF COL_LENGTH('Documents','ArchivedAt') IS NULL
+BEGIN
+    ALTER TABLE [Documents] ADD [ArchivedAt] DATETIME2 NULL;
+END
+
+IF OBJECT_ID('DocumentComments', 'U') IS NULL
+BEGIN
+    CREATE TABLE [DocumentComments] (
+        [CommentID] INT IDENTITY(1,1) NOT NULL,
+        [DocumentID] INT NOT NULL,
+        [UserID] INT NOT NULL,
+        [Text] NVARCHAR(MAX) NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+        CONSTRAINT [PK_DocumentComments] PRIMARY KEY ([CommentID]),
+        CONSTRAINT [FK_DocumentComments_Documents] FOREIGN KEY ([DocumentID]) REFERENCES [Documents] ([DocumentID]) ON DELETE CASCADE,
+        CONSTRAINT [FK_DocumentComments_Users] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
+    );
+END
+
+IF OBJECT_ID('RetentionPolicies', 'U') IS NULL
+BEGIN
+    CREATE TABLE [RetentionPolicies] (
+        [ID] INT IDENTITY(1,1) NOT NULL,
+        [WorkplaceID] INT NOT NULL,
+        [AutoArchiveAfterDays] INT NULL,
+        [AutoDeleteAfterDays] INT NULL,
+        [IsEnabled] BIT NOT NULL DEFAULT 1,
+        [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+        CONSTRAINT [PK_RetentionPolicies] PRIMARY KEY ([ID])
+    );
+END
+
+IF COL_LENGTH('WorkplaceInvitations','UsageLimit') IS NULL
+BEGIN
+    ALTER TABLE [WorkplaceInvitations] ADD [UsageLimit] INT NULL;
+END
+
+IF COL_LENGTH('WorkplaceInvitations','UsageCount') IS NULL
+BEGIN
+    ALTER TABLE [WorkplaceInvitations] ADD [UsageCount] INT NOT NULL DEFAULT 0;
+END
+
+-- Ensure Email column is nullable
+ALTER TABLE [WorkplaceInvitations] ALTER COLUMN [Email] NVARCHAR(256) NULL;
+
+IF COL_LENGTH('Workplaces','IntegrationApiKey') IS NULL
+BEGIN
+    ALTER TABLE [Workplaces] ADD [IntegrationApiKey] NVARCHAR(100) NULL;
+END
+
+IF COL_LENGTH('Documents','ExternalRefID') IS NULL
+BEGIN
+    ALTER TABLE [Documents] ADD [ExternalRefID] NVARCHAR(100) NULL;
+END
+
+IF COL_LENGTH('Documents','BusinessEntityType') IS NULL
+BEGIN
+    ALTER TABLE [Documents] ADD [BusinessEntityType] NVARCHAR(100) NULL;
+END
+
+IF COL_LENGTH('Documents','BusinessEntityID') IS NULL
+BEGIN
+    ALTER TABLE [Documents] ADD [BusinessEntityID] INT NULL;
+END
+");
+
+        // Create minimal Identity-related tables if they don't exist yet. The
+        // project uses a custom schema (Users, Roles, UserRoles); some Identity
+        // APIs still expect claim/login/token tables. Create lightweight tables
+        // to satisfy queries without changing your existing tables.
+        
+        // [Note: Manual creation of UserClaims, RoleClaims, UserLogins, UserTokens removed 
+        // because they are now managed by IdentityDbContext as AspNetUserClaims, etc. 
+        // with GUID-based UserId keys.]
+        
+        // Backfill: ensure organizations have a CreatedByUserID where possible
+        // ... (existing backfill logic kept or removed as needed, keeping it for now in the block below)
+
+         // Initialize roles and default admin
+        try 
+        {
+            await DbInitializer.InitializeAsync(scope.ServiceProvider);
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while seeding the database.");
+        }
+
+        // === Backfill: ensure organizations have a CreatedByUserID where possible ===
+            try
+            {
+                // Find workplaces without a recorded creator
+                var orphanOrgs = db.Workplaces.Where(o => o.CreatedByUserID == null).ToList();
+                foreach (var org in orphanOrgs)
+                {
+                    int? resolvedCreator = null;
+
+                    // Prefer an audit log entry indicating who created the workplace
+                    try
+                    {
+                        var audit = db.AuditLogs
+                            .Where(a => a.WorkplaceID == org.WorkplaceID && a.UserID != null && a.Action != null && a.Action.ToLower().Contains("create"))
+                            .OrderBy(a => a.PerformedAt)
+                            .FirstOrDefault();
+                        if (audit != null)
+                        {
+                            resolvedCreator = audit.UserID;
+                        }
+                    }
+                    catch { /* ignore auditing lookup errors */ }
+
+                    // If no audit info, fall back to earliest workplace member if present
+                    if (resolvedCreator == null)
+                    {
+                        try
+                        {
+                            var member = db.WorkplaceMembers
+                                .Where(m => m.WorkplaceID == org.WorkplaceID)
+                                .OrderBy(m => m.JoinedAt)
+                                .FirstOrDefault();
+                            if (member != null)
+                            {
+                                resolvedCreator = member.UserID;
+                            }
+                        }
+                        catch { /* ignore */ }
+                    }
+
+                    if (resolvedCreator != null)
+                    {
+                        org.CreatedByUserID = resolvedCreator;
+                        // ensure the creator is present as a WorkplaceMember with owner role
+                        try
+                        {
+                            var exists = db.WorkplaceMembers.Any(m => m.WorkplaceID == org.WorkplaceID && m.UserID == resolvedCreator);
+                            if (!exists)
+                            {
+                                db.WorkplaceMembers.Add(new WorkplaceMember
+                                {
+                                    WorkplaceID = org.WorkplaceID,
+                                    UserID = resolvedCreator.Value,
+                                    RoleID = 1, // 1 = Admin/Owner
+                                    JoinedAt = DateTime.UtcNow
+                                });
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                // Persist any changes from backfill
+                try
+                {
+                    db.SaveChanges();
+                }
+                catch { /* swallow to avoid blocking startup */ }
+            }
+        catch { }
+    }
+    catch
+    {
+        // Do not stop app startup; failures here will show up in logs and can be addressed
+        // via a proper EF migration. Swallow exceptions to avoid crashing the app during dev.
+    }
+}
+
+app.Run();

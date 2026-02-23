@@ -1,0 +1,237 @@
+@model FileMatrix_Pabiran_.Models.Workplace
+@{
+    ViewData["Title"] = "Create Workspace";
+}
+
+<div class="workspace-hero">
+    <div class="container py-5 py-md-6">
+        <div class="text-center mb-4 mb-md-5">
+            <div class="workspace-logo-card mb-3">
+                <div class="workspace-logo-inner"></div>
+            </div>
+            <h1 class="workspace-brand mb-1">FileMatrix</h1>
+            <p class="workspace-greeting mb-1">Welcome, Admin User!</p>
+            <p class="workspace-subtitle">Let's set up your workspace to get started</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <div class="workspace-form-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <a asp-action="Index" class="workspace-back-link me-2">
+                            &larr;
+                        </a>
+                        <div>
+                            <h2 class="workspace-form-title mb-1">Set Up Your Workspace</h2>
+                            <p class="workspace-form-subtitle mb-0">Configure your workspace in seconds</p>
+                        </div>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Workspace Name</label>
+                            <input asp-for="Name" class="form-control workspace-input" placeholder="Acme Corporation" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label d-block">Workspace Type</label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="workspace-type-tile">
+                                        <input type="radio" name="Description" value="Business" class="d-none" @(Model?.Description == "Business" ? "checked" : "") />
+                                        <span class="workspace-type-inner">
+                                            <span class="workspace-type-label">Business</span>
+                                            <span class="workspace-type-desc">For companies</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="workspace-type-tile">
+                                        <input type="radio" name="Description" value="Team" class="d-none" @(Model?.Description == "Team" ? "checked" : "") />
+                                        <span class="workspace-type-inner">
+                                            <span class="workspace-type-label">Team</span>
+                                            <span class="workspace-type-desc">For groups</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="workspace-type-tile">
+                                        <input type="radio" name="Description" value="Personal" class="d-none" @(Model?.Description == "Personal" ? "checked" : "") />
+                                        <span class="workspace-type-inner">
+                                            <span class="workspace-type-label">Personal</span>
+                                            <span class="workspace-type-desc">Just for you</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary workspace-primary-btn">Create Workspace</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .workspace-hero {
+        min-height: calc(100vh - 80px);
+        background: radial-gradient(circle at top left, #e0e7ff 0, #f9f5ff 30%, #fdf2ff 55%, #f9fafb 100%);
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .workspace-logo-card {
+        width: 70px;
+        height: 70px;
+        border-radius: 22px;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+            0 18px 50px rgba(88, 28, 135, 0.35),
+            0 4px 12px rgba(30, 64, 175, 0.25);
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .workspace-logo-inner {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #4f46e5, #a855f7);
+    }
+
+    .workspace-brand {
+        font-size: 1.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        background: linear-gradient(90deg, #4f46e5, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .workspace-greeting {
+        font-weight: 500;
+        color: #020617;
+    }
+
+    .workspace-subtitle {
+        color: #6b7280;
+        font-size: 0.98rem;
+    }
+
+    .workspace-form-card {
+        background: #ffffff;
+        border-radius: 26px;
+        padding: 2.2rem 2.2rem 2rem;
+        box-shadow:
+            0 22px 60px rgba(15, 23, 42, 0.14),
+            0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+
+    .workspace-back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        color: #4b5563;
+        text-decoration: none;
+        background: #f3f4f6;
+        font-size: 1.05rem;
+    }
+
+    .workspace-back-link:hover {
+        background: #e5e7eb;
+    }
+
+    .workspace-form-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+    }
+
+    .workspace-form-subtitle {
+        font-size: 0.95rem;
+        color: #6b7280;
+    }
+
+    .workspace-input {
+        border-radius: 12px;
+        border-color: #e5e7eb;
+        padding: 0.8rem 0.9rem;
+    }
+
+    .workspace-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.25);
+    }
+
+    .workspace-type-tile {
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .workspace-type-inner {
+        display: block;
+        padding: 0.8rem 0.9rem;
+        border-radius: 16px;
+        border: 1.5px solid #e5e7eb;
+        background: #f9fafb;
+        text-align: left;
+        transition: all .18s ease;
+    }
+
+    .workspace-type-label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: #111827;
+    }
+
+    .workspace-type-desc {
+        display: block;
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    .workspace-type-tile input:checked + .workspace-type-inner {
+        border-color: #4f46e5;
+        background: #eef2ff;
+        box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.35);
+    }
+
+    .workspace-primary-btn {
+        margin-top: 0.3rem;
+        width: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #4f46e5, #6366f1);
+        border: none;
+        padding: 0.8rem 1.2rem;
+        font-weight: 600;
+        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.45);
+    }
+
+    .workspace-primary-btn:hover,
+    .workspace-primary-btn:focus {
+        background: linear-gradient(90deg, #4338ca, #4f46e5);
+    }
+
+    @@media (max-width: 767.98px) {
+        .workspace-hero {
+            min-height: auto;
+        }
+
+        .workspace-form-card {
+            padding: 1.6rem 1.5rem 1.7rem;
+            border-radius: 22px;
+        }
+    }
+</style>

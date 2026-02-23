@@ -1,0 +1,66 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser<int>> SignInManager
+@inject UserManager<IdentityUser<int>> UserManager
+
+@* Floating navigation partial for authenticated pages, matching Landing Page style *@
+<nav class="landing-nav position-fixed start-50 translate-middle-x d-flex align-items-center" style="z-index: 1050; top: 24px;">
+    <!-- Brand -->
+    <a class="d-flex align-items-center text-decoration-none landing-nav-brand" asp-controller="Home" asp-action="Index">
+        <img src="~/images/FileMatrix.png" alt="FileMatrix" height="32" class="me-2" />
+        <strong class="landing-nav-logo-text">FileMatrix</strong>
+    </a>
+
+    <!-- Desktop links -->
+    <div class="d-none d-md-flex align-items-center landing-nav-links">
+        <a class="landing-nav-link active-section text-decoration-none" asp-controller="Organizations" asp-action="Index">Workspaces</a>
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <a class="landing-nav-link text-decoration-none ms-3" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="Index" style="color: #fbbf24;">Super Admin</a>
+        }
+    </div>
+
+    <!-- Right (desktop) -->
+    <div class="d-none d-md-flex align-items-center ms-auto gap-2">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a class="landing-nav-link text-decoration-none" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+                @User.Identity?.Name
+            </a>
+            
+            <form class="form-inline m-0 p-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="landing-nav-signin border-0 text-danger" style="background-color: transparent; cursor: pointer;">Logout</button>
+            </form>
+        }
+        else
+        {
+            <a class="landing-nav-signin" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="login">Sign In</a>
+            <a class="landing-nav-cta" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="register">Get Started</a>
+        }
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="d-md-none ms-auto landing-nav-hamburger" type="button" onclick="document.getElementById('orgMobileMenu').classList.toggle('open');" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- Mobile slide-down menu -->
+<div id="orgMobileMenu" class="landing-mobile-menu">
+    <a class="landing-mobile-link" asp-controller="Organizations" asp-action="Index">Workspaces</a>
+    
+    <hr class="my-2 opacity-25" />
+    
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <a class="landing-mobile-link" asp-area="Identity" asp-page="/Account/Manage/Index">Profile (@User.Identity?.Name)</a>
+        
+        <form class="form-inline w-100" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="landing-mobile-link w-100 text-start border-0 text-danger" style="background-color: transparent;">Logout</button>
+        </form>
+    }
+    else
+    {
+        <a class="landing-mobile-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="login" onclick="this.parentElement.classList.remove('open')">Sign In</a>
+        <a class="landing-mobile-cta" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="register" onclick="this.parentElement.classList.remove('open')">Get Started</a>
+    }
+</div>

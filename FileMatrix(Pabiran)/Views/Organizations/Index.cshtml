@@ -1,0 +1,405 @@
+@{
+    ViewData["Title"] = "Choose Your Workspace";
+    ViewData["HideMainNav"] = true;
+    var userName = User?.Identity?.Name ?? "Admin User";
+}
+
+<partial name="_OrgNav" />
+
+@section Head {
+    <style>
+        .orgs-page-wrapper {
+            min-height: 100vh;
+            background: radial-gradient(circle at 0% 0%, #f1f5f9 0%, #f8fafc 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .orgs-bg-accent {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, rgba(79, 70, 229, 0) 70%);
+            border-radius: 50%;
+            top: -200px;
+            left: -100px;
+            z-index: 0;
+        }
+
+        .orgs-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .orgs-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .orgs-brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 100px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+
+        .orgs-brand-dot {
+            width: 8px;
+            height: 8px;
+            background: #4f46e5;
+            border-radius: 50%;
+        }
+
+        .orgs-brand-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .orgs-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        .orgs-subtitle {
+            font-size: 1.125rem;
+            color: #64748b;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .org-selection-card {
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            border-radius: 24px;
+            padding: 40px;
+            height: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        }
+
+        .org-selection-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.15);
+            border-color: #e2e8f0;
+        }
+
+        .org-icon-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+            transition: transform 0.3s ease;
+        }
+
+        .org-selection-card:hover .org-icon-box {
+            transform: scale(1.1);
+        }
+
+        .org-icon-box-primary {
+            background: linear-gradient(135deg, #4f46e5, #818cf8);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+        }
+
+        .org-icon-box-secondary {
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+        }
+
+        .org-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .org-card-desc {
+            font-size: 1rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .org-card-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .org-card-btn-primary {
+            background: #4f46e5;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .org-card-btn-primary:hover {
+            background: #4338ca;
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .org-card-btn-outline {
+            background: transparent;
+            border: 2px solid #e2e8f0;
+            color: #0f172a;
+        }
+
+        .org-card-btn-outline:hover {
+            border-color: #0f172a;
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .org-features-list {
+            list-style: none;
+            padding: 0;
+            margin: 24px 0 0;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 24px;
+        }
+
+        .org-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .org-feature-dot {
+            width: 14px;
+            height: 14px;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .org-feature-dot i {
+            font-size: 8px;
+            color: #4f46e5;
+        }
+
+        .orgs-footer {
+            margin-top: 48px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .orgs-footer a {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .orgs-footer a:hover {
+            color: #4f46e5;
+        }
+    </style>
+}
+
+<div class="orgs-page-wrapper">
+    <div class="orgs-bg-accent"></div>
+    
+    <div class="orgs-content mx-auto px-3">
+        <div class="orgs-header">
+            <div class="orgs-brand-badge">
+                <div class="orgs-brand-dot"></div>
+                <span class="orgs-brand-text">FileMatrix Workspace</span>
+            </div>
+            <h1 class="orgs-title">Welcome back, @userName</h1>
+            <p class="orgs-subtitle">Choose how you'd like to proceed. You can create a new workspace or join an existing organization.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Your Workspaces Section -->
+            @if (ViewBag.UserWorkspaces != null && ((dynamic)ViewBag.UserWorkspaces).Count > 0)
+            {
+                <div class="col-12 mb-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <h2 class="fw-bold text-dark mb-0">Your Workspaces</h2>
+                        <div class="h-px flex-grow-1 bg-slate-200"></div>
+                    </div>
+                    <div class="row g-4">
+                        @foreach (dynamic wp in ViewBag.UserWorkspaces)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="org-selection-card @(!wp.IsActive ? "org-card-suspended" : "")">
+                                    <div class="org-icon-box @(wp.IsActive ? "org-icon-box-primary" : "org-icon-box-muted")">
+                                        @if (wp.IsActive)
+                                        {
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                            </svg>
+                                        }
+                                        else
+                                        {
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                            </svg>
+                                        }
+                                    </div>
+                                    <h3 class="org-card-title h5 mb-1">@wp.Name</h3>
+                                    <small class="text-muted fw-semibold text-uppercase ls-wide mb-3 d-block" style="font-size: 0.65rem;">@wp.RoleName</small>
+                                    
+                                    @if (wp.IsActive)
+                                    {
+                                        <form method="post" action="/Account/SwitchWorkplace">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@wp.WorkplaceID" />
+                                            <button type="submit" class="org-card-btn org-card-btn-primary w-100">
+                                                Enter Workspace
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="org-card-btn org-card-btn-muted w-100" disabled>
+                                            Suspended
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                            </svg>
+                                        </button>
+                                        <p class="text-danger small mt-2 mb-0 fw-medium">Access locked by administrator.</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="col-12">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <h2 class="fw-bold text-dark mb-0">Join or Create</h2>
+                    <div class="h-px flex-grow-1 bg-slate-200"></div>
+                </div>
+            </div>
+
+            <!-- Create Workspace -->
+            <div class="col-md-6">
+                <div class="org-selection-card">
+                    <div class="org-icon-box org-icon-box-primary">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3 class="org-card-title">Create Workspace</h3>
+                    <p class="org-card-desc">Start a new instance for your business, team, or personal project. You'll be the administrator.</p>
+                    <a asp-action="Create" class="org-card-btn org-card-btn-outline w-100">
+                        Get Started
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Join Organization -->
+            <div class="col-md-6">
+                <div class="org-selection-card">
+                    <div class="org-icon-box org-icon-box-secondary">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3 class="org-card-title">Join Organization</h3>
+                    <p class="org-card-desc">Received an invitation? Enter your code to join your team and start collaborating immediately.</p>
+                    <a asp-action="Join" class="org-card-btn org-card-btn-outline w-100">
+                        Join with Code
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="orgs-footer">
+            Need help? Check our <a href="#">documentation</a> or contact <a href="#">support</a>.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .bg-slate-200 { background-color: #e2e8f0; }
+        .h-px { height: 1px; }
+        .ls-wide { letter-spacing: 0.05em; }
+
+        .org-card-suspended {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            opacity: 0.85;
+            cursor: not-allowed;
+        }
+
+        .org-card-suspended:hover {
+            transform: none !important;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05) !important;
+        }
+
+        .org-icon-box-muted {
+            background: #cbd5e1;
+            color: #64748b;
+        }
+
+        .org-card-btn-muted {
+            background: #e2e8f0;
+            color: #94a3b8;
+            border: none;
+            cursor: not-allowed;
+        }
+    </style>
+}
+
+

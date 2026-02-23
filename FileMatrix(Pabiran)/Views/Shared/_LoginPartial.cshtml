@@ -1,0 +1,27 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser<int>> SignInManager
+@inject UserManager<IdentityUser<int>> UserManager
+
+<ul class="navbar-nav align-items-center">
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item me-3">
+        <span class="app-nav-user-text">Welcome, <a asp-area="Identity" asp-page="/Account/Manage/Index" class="text-dark fw-bold text-decoration-none">@User.Identity?.Name</a></span>
+    </li>
+    <li class="nav-item">
+        <form class="form-inline" method="post" action="/Account/Logout">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="app-nav-logout-btn">Logout</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="app-nav-link text-decoration-none" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="login">Sign In</a>
+    </li>
+    <li class="nav-item">
+        <a class="landing-nav-cta ms-2" href="#" data-bs-toggle="modal" data-bs-target="#authModal" data-auth-tab="register">Get Started</a>
+    </li>
+}
+</ul>

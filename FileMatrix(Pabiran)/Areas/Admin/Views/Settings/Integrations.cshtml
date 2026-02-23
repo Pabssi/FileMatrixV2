@@ -1,0 +1,317 @@
+@model FileMatrix_Pabiran_.Models.Workplace
+@{
+    ViewData["Title"] = "Integrations";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="mb-5 reveal-on-scroll">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index" class="text-indigo text-decoration-none fw-bold small">Settings</a></li>
+                <li class="breadcrumb-item active fw-bold text-muted small" aria-current="page">External Integrations</li>
+            </ol>
+        </nav>
+        <h2 class="fw-extrabold text-dark mb-1">External Integrations</h2>
+        <p class="text-muted fw-medium">Connect your POS, Accounting, or other business systems to automatically push documents.</p>
+    </div>
+
+    <div class="row g-4 reveal-on-scroll">
+        <!-- API Connection Management Card -->
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden premium-card mb-4 transition-all">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-box-sm bg-indigo-subtle text-indigo rounded-3 mt-n1">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        </div>
+                        <h5 class="fw-bold mb-0">API Connection Settings</h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (string.IsNullOrEmpty(Model.IntegrationApiKey))
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-4 text-muted opacity-25">
+                                <svg width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            </div>
+                            <h4 class="fw-bold text-dark">No API Key Active</h4>
+                            <p class="text-muted mx-auto mb-4" style="max-width: 400px;">Generate a secure API key to start connecting external systems to this workplace.</p>
+                            <form asp-action="GenerateApiKey" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-indigo-gradient rounded-pill px-5 fw-bold shadow-sm py-2 border-0 text-white">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-2"><path d="M12 5v14M5 12h14"></path></svg>
+                                    Generate API Key
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase ls-wide">Active API Key</label>
+                            <div class="input-group premium-input-group shadow-sm rounded-4 overflow-hidden border">
+                                <input type="password" value="@Model.IntegrationApiKey" class="form-control border-0 py-3 px-4 font-monospace bg-white" id="api-key-input" readonly style="font-size: 0.95rem;">
+                                <button class="btn btn-light border-0 px-3 bg-white hover-bg-light" type="button" id="toggle-key-visibility" title="Toggle Visibility">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                                <button class="btn btn-indigo text-white border-0 px-4 fw-bold" type="button" id="copy-key-btn">
+                                    Copy Key
+                                </button>
+                            </div>
+                            <div class="mt-4 p-3 bg-warning-subtle text-warning-emphasis border-0 rounded-4 small d-flex gap-3">
+                                <div class="mt-1">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                </div>
+                                <div class="lh-base">
+                                    <span class="fw-bold d-block mb-1">Security Warning</span>
+                                    Keep this key secret. Anyone with access can upload documents to your workplace without further authorization. Never share it in public repositories.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4 pt-4 border-top">
+                            <form asp-action="GenerateApiKey" method="post" id="regenerate-form">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn btn-outline-indigo rounded-pill px-4 fw-bold shadow-sm" onclick="confirmRegen()">
+                                    Regenerate Key
+                                </button>
+                            </form>
+                            <form asp-action="RevokeApiKey" method="post" id="revoke-form">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn btn-outline-danger rounded-pill px-4 fw-bold" onclick="confirmRevoke()">
+                                    Revoke Access
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Documentation / Instructions Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden premium-card transition-all">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Integration Guide</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small fw-medium mb-4">Use the following endpoint to push documents from your system. Requires a <code>multipart/form-data</code> POST request.</p>
+                    
+                    <div class="bg-indigo-dark rounded-4 p-4 mb-4 text-white font-monospace small position-relative shadow-sm border border-indigo-accent">
+                        <div class="mb-3 text-indigo-lighter fw-bold d-flex align-items-center gap-2" style="font-size: 0.7rem; letter-spacing: 0.1em;">
+                            <span class="badge bg-indigo-accent px-2 py-1">POST</span>
+                            API ENDPOINT
+                        </div>
+                        <code class="text-indigo-lighter fs-6">@(Context.Request.Scheme)://@(Context.Request.Host)/api/integrations/upload</code>
+                    </div>
+
+                    <h6 class="fw-bold mb-3 small text-uppercase text-muted ls-wide">Example Request (cURL)</h6>
+                    <div class="bg-indigo-dark rounded-4 p-4 text-white font-monospace small shadow-sm border border-indigo-accent">
+                        <pre class="mb-0 overflow-auto thin-scrollbar" style="max-height: 400px; line-height: 1.6;"><code class="text-indigo-lighter">curl -X POST @(Context.Request.Scheme)://@(Context.Request.Host)/api/integrations/upload \
+  -H "X-FileMatrix-Key: YOUR_API_KEY" \
+  -F "file=@@/path/to/invoice.pdf" \
+  -F "title=POS Receipt #1024" \
+  -F "description=Automated upload from POS System" \
+  -F "entityType=PurchaseRecord" \
+  -F "entityId=1024" \
+  -F "externalRefId=OR_9921"</code></pre>
+                    </div>
+
+                    <div class="mt-4 alert alert-premium-indigo border-0 rounded-4 shadow-sm">
+                        <div class="d-flex gap-3">
+                            <div class="mt-1 text-indigo">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-indigo">Developer Note</h6>
+                                <p class="mb-0 small text-muted fw-medium lh-base">The <code>entityType</code> and <code>entityId</code> fields allow you to link documents to specific records in your own system, enhancing cross-platform traceability.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 premium-card h-100 transition-all">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">API Benefits</h5>
+                    <ul class="list-unstyled d-flex flex-column gap-4 mb-5">
+                        <li class="d-flex gap-3">
+                            <div class="icon-box-sm bg-success-subtle text-success rounded-circle shadow-sm">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">Zero Manual Entry</h6>
+                                <p class="small text-muted mb-0 lh-base">Reduce human error by automating document ingestion directly into your workspace.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3">
+                            <div class="icon-box-sm bg-success-subtle text-success rounded-circle shadow-sm">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">Smart Linking</h6>
+                                <p class="small text-muted mb-0 lh-base">Automatically link invoices and receipts to your internal transaction IDs.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3">
+                            <div class="icon-box-sm bg-success-subtle text-success rounded-circle shadow-sm">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">Unified Repository</h6>
+                                <p class="small text-muted mb-0 lh-base">Create a central source of truth for all business documents across all platforms.</p>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div class="pt-4 border-top">
+                        <h6 class="fw-bold mb-3 text-uppercase small text-muted ls-wide">System Connectivity</h6>
+                        <div class="d-flex justify-content-between small mb-2 align-items-center">
+                            <span class="text-muted">API Layer Status</span>
+                            <span class="badge bg-success shadow-sm rounded-pill px-3 py-1 fw-bold">ONLINE</span>
+                        </div>
+                        <div class="d-flex justify-content-between small align-items-center">
+                            <span class="text-muted">Authentication</span>
+                            <span class="@(string.IsNullOrEmpty(Model.IntegrationApiKey) ? "text-warning" : "text-success") fw-bold d-flex align-items-center gap-1">
+                                @if(!string.IsNullOrEmpty(Model.IntegrationApiKey)) {
+                                    <div class="pulse-green-sm"></div>
+                                }
+                                @(string.IsNullOrEmpty(Model.IntegrationApiKey) ? "Pending Setup" : "Active")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+    .ls-wide { letter-spacing: 0.05em; }
+    
+    .premium-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .premium-card:hover { border-color: #c7d2fe !important; }
+
+    .icon-box-sm {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .premium-input-group { border-color: #e2e8f0 !important; }
+    .premium-input-group:focus-within { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important; }
+
+    .btn-indigo-gradient {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        transition: all 0.3s ease;
+    }
+
+    .btn-indigo-gradient:hover {
+        background: linear-gradient(135deg, #4338ca, #4f46e5);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-outline-indigo {
+        color: #4f46e5;
+        border: 2px solid rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-outline-indigo:hover {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+        color: #fff;
+    }
+
+    .bg-indigo-dark { background-color: #0f172a; }
+    .text-indigo-lighter { color: #e0e7ff; }
+    .bg-indigo-accent { background-color: #4f46e5; }
+    .border-indigo-accent { border-color: rgba(99, 102, 241, 0.3) !important; }
+
+    .alert-premium-indigo {
+        background: rgba(79, 70, 229, 0.04);
+        border: 1px solid rgba(79, 70, 229, 0.1) !important;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .thin-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+    .thin-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+    .thin-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+    .pulse-green-sm {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green-sm 2s infinite;
+    }
+
+    @@keyframes pulse-green-sm {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .bg-indigo-subtle { background-color: rgba(79, 70, 229, 0.08) !important; }
+    .text-indigo { color: #4f46e5 !important; }
+    .bg-success-subtle { background-color: rgba(16, 185, 129, 0.08) !important; }
+    .text-success { color: #10b981 !important; }
+    .bg-warning-subtle { background-color: rgba(245, 158, 11, 0.08) !important; }
+    .text-warning-emphasis { color: #9a3412 !important; }
+    .bg-slate-subtle { background-color: #f1f5f9 !important; }
+    .text-slate { color: #64748b !important; }
+
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function confirmRegen() {
+            if (confirm("Are you sure you want to regenerate the API key? The existing key will stop working immediately.")) {
+                document.getElementById('regenerate-form').submit();
+            }
+        }
+
+        function confirmRevoke() {
+            if (confirm("Are you sure you want to revoke API access? All external integrations using this key will fail.")) {
+                document.getElementById('revoke-form').submit();
+            }
+        }
+
+        $(document).ready(function() {
+            $('#toggle-key-visibility').click(function() {
+                var input = $('#api-key-input');
+                var icon = $(this).find('svg');
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    $(this).html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>');
+                } else {
+                    input.attr('type', 'password');
+                    $(this).html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>');
+                }
+            });
+
+            $('#copy-key-btn').click(function() {
+                var key = $('#api-key-input').val();
+                navigator.clipboard.writeText(key).then(function() {
+                    showToast("API Key copied to clipboard");
+                }, function() {
+                    alert("Failed to copy. Please select and copy manually.");
+                });
+            });
+        });
+    </script>
+}

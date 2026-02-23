@@ -1,0 +1,243 @@
+@model FileMatrix_Pabiran_.Areas.Admin.Models.AdminViewModel
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Workspace Dashboard";
+    var membership = ViewBag.CurrentMembership as FileMatrix_Pabiran_.Models.WorkplaceMember;
+    var isAdmin = membership?.RoleID == 1;
+    var canEdit = membership?.RoleID <= 2;
+}
+
+@section Head {
+    <style>
+        .dashboard-header { margin-bottom: 2.5rem; }
+        .dashboard-header h1 { font-size: 2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.025em; margin-bottom: .25rem; }
+        .dashboard-header p { color: #64748b; font-size: 0.95rem; margin: 0; font-weight: 500; }
+
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover { border-color: #cbd5e1; box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.05); transform: translateY(-2px); }
+        .stat-icon { width: 42px; height: 42px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+        .stat-icon svg { width: 22px; height: 22px; }
+        .stat-label { font-size: .75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
+        .stat-value { font-size: 1.75rem; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: .5rem; letter-spacing: -0.02em; }
+        .stat-desc { font-size: .8125rem; color: #94a3b8; font-weight: 500; }
+
+        .content-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .content-card-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0; }
+        
+        .activity-item, .document-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .activity-item:last-child, .document-item:last-child { border-bottom: none; }
+        
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #64748b;
+        }
+
+        .item-info { flex-grow: 1; min-width: 0; }
+        .item-title { font-size: 0.9rem; font-weight: 600; color: #1e293b; margin-bottom: 0.15rem; }
+        .item-meta { font-size: 0.8rem; color: #94a3b8; }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 0.75rem;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            background: #ffffff;
+        }
+
+        .quick-action-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateX(4px);
+        }
+
+        .quick-action-btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #ffffff;
+            border: none;
+        }
+
+        .quick-action-btn-primary:hover {
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            color: #ffffff;
+            opacity: 0.95;
+        }
+    </style>
+}
+
+<div class="dashboard-header reveal-on-scroll">
+    <h1>Welcome back to @Model.WorkplaceName</h1>
+    <p>Managing records and platform governance for your organization.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="row g-4 mb-5 reveal-on-scroll">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(79, 70, 229, 0.1); color:#4f46e5;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div class="stat-label">Total Documents</div>
+            <div class="stat-value">@Model.TotalDocuments</div>
+            <div class="stat-desc">Files across all categories</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16, 185, 129, 0.1); color:#10b981;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            </div>
+            <div class="stat-label">Storage Used</div>
+            <div class="stat-value">@Model.TotalSizeFormatted</div>
+            <div class="stat-desc">Of your active workplace</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245, 158, 11, 0.1); color:#f59e0b;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div class="stat-label">Workspace Members</div>
+            <div class="stat-value">@Model.TotalMembers</div>
+            <div class="stat-desc">Admins, Editors, and Viewers</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="content-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="content-card-title">Recent Documents</h5>
+                <a href="@Url.Action("Index","Documents")" class="text-primary text-decoration-none small fw-bold">View all &rarr;</a>
+            </div>
+            <div class="document-list">
+                @if (Model.RecentDocuments != null && Model.RecentDocuments.Any())
+                {
+                    foreach (var doc in Model.RecentDocuments)
+                    {
+                        string iconClass = "";
+                        if (doc.IsWord) iconClass = "type-word";
+                        else if (doc.IsExcel) iconClass = "type-excel";
+                        else if (doc.IsPowerPoint) iconClass = "type-powerpoint";
+                        else if (doc.IsPdf) iconClass = "type-pdf";
+                        else if (doc.IsImage) iconClass = "type-image";
+                        else if (doc.IsVideo) iconClass = "type-video";
+
+                        <div class="document-item">
+                            <div class="item-icon @iconClass">
+                                @if (doc.IsWord)
+                                {
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13h6"></path><path d="M9 17h3"></path></svg>
+                                }
+                                else if (doc.IsExcel)
+                                {
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h8v4H8z"></path><path d="M12 13v4"></path></svg>
+                                }
+                                else if (doc.IsPdf)
+                                {
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 17h6"></path><path d="M12 12V17"></path></svg>
+                                }
+                                else if (doc.IsImage)
+                                {
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                }
+                                else
+                                {
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                }
+                            </div>
+                            <div class="item-info">
+                                <a href="@Url.Action("Details", "Documents", new { id = doc.DocumentID })" class="text-decoration-none">
+                                    <div class="item-title">@doc.Title</div>
+                                </a>
+                                <div class="item-meta">
+                                    Last updated @doc.UpdatedAt.ToString("MMM dd, yyyy") &bull; @doc.FileSizeFormatted
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <a href="@Url.Action("Download", "Documents", new { id = doc.DocumentID })" class="btn btn-sm btn-link text-muted p-0" title="Download">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <p class="mb-0">No documents found in this workspace yet.</p>
+                        <small>Start by uploading your first file.</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="content-card h-100">
+            <h5 class="content-card-title mb-4">Quick Actions</h5>
+            <div class="d-flex flex-column gap-2">
+                @if (canEdit)
+                {
+                    <a href="@Url.Action("Index", "Documents")" class="quick-action-btn quick-action-btn-primary">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        Upload Document
+                    </a>
+                }
+                @if (isAdmin)
+                {
+                    <a href="@Url.Action("Index", "Invitations")" class="quick-action-btn">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+                        Invite Member
+                    </a>
+                    <a href="@Url.Action("Index", "Categories")" class="quick-action-btn">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Manage Categories
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
