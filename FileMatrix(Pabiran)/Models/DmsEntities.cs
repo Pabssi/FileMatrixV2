@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace FileMatrix_Pabiran_.Models
 {
-    // Users
+    /// <summary>
+    /// User: The primary account entity for the system.
+    /// This model stores profile data and the platform-wide Role (0=SuperAdmin, 3=User).
+    /// </summary>
     public class User
     {
         public int UserID { get; set; }
@@ -19,7 +22,10 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime? LastLogin { get; set; }
     }
 
-    // Workplaces
+    /// <summary>
+    /// Workplace: An organizational container (Tenant) for documents and users.
+    /// Supports complete data isolation between different organizations.
+    /// </summary>
     public class Workplace
     {
         public int WorkplaceID { get; set; }
@@ -31,8 +37,18 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; } = true;
         public string? IntegrationApiKey { get; set; }
+
+        // Google Drive Integration
+        public string? GoogleDriveAccessToken { get; set; }
+        public string? GoogleDriveRefreshToken { get; set; }
+        public DateTime? GoogleDriveTokenExpiry { get; set; }
+        public string? GoogleBackupFolderID { get; set; }
     }
 
+    /// <summary>
+    /// WorkplaceMember: Defines the many-to-many relationship between Users and Workplaces.
+    /// Stores the local RoleID (1=Admin, 2=Editor, 3=Viewer) for the user within this specific workplace.
+    /// </summary>
     public class WorkplaceMember
     {
         public int WorkplaceMemberID { get; set; }
@@ -44,6 +60,9 @@ namespace FileMatrix_Pabiran_.Models
         public virtual User? User { get; set; }
     }
 
+    /// <summary>
+    /// WorkplaceInvitation: For onboarding new users or teams into a workplace via tokens or codes.
+    /// </summary>
     public class WorkplaceInvitation
     {
         public int InvitationID { get; set; }
@@ -62,7 +81,9 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime CreatedAt { get; set; }
     }
 
-    // Categories
+    /// <summary>
+    /// Category: Organizational metadata used to tag and color-code documents within a workplace.
+    /// </summary>
     public class Category
     {
         public int CategoryID { get; set; }
@@ -73,7 +94,9 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime CreatedAt { get; set; }
     }
 
-    // Folders
+    /// <summary>
+    /// Folder: Provides a hierarchical structure for organizing documents within a workplace.
+    /// </summary>
     public class Folder
     {
         public int FolderID { get; set; }
@@ -84,7 +107,10 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime CreatedAt { get; set; }
     }
 
-    // Documents
+    /// <summary>
+    /// Document: The core asset entity. 
+    /// Represents a logical file that can have multiple historical versions.
+    /// </summary>
     public class Document
     {
         public int DocumentID { get; set; }
@@ -105,7 +131,7 @@ namespace FileMatrix_Pabiran_.Models
         public bool IsFavorite { get; set; }
         public string Status { get; set; } = "Published"; // Draft, Published
         public string? PublicShareToken { get; set; }
-        public string PublicAccessLevel { get; set; } = "Viewer"; // Viewer, Editor
+        public string PublicAccessLevel { get; set; } = "Restricted"; // Viewer, Editor, Restricted
         public DateTime? ArchivedAt { get; set; }
         public bool RetentionNoticeSent { get; set; } = false;
         public virtual Workplace? Workplace { get; set; }
@@ -115,6 +141,9 @@ namespace FileMatrix_Pabiran_.Models
         public virtual User? CreatedBy { get; set; }
     }
 
+    /// <summary>
+    /// DocumentVersion: Stores the physical file metadata and content state for a specific point in time.
+    /// </summary>
     public class DocumentVersion
     {
         public int VersionID { get; set; }
@@ -131,6 +160,9 @@ namespace FileMatrix_Pabiran_.Models
         public virtual Document? Document { get; set; }
     }
 
+    /// <summary>
+    /// DocumentPermission: Provides granular, user-specific access overrides for a specific document.
+    /// </summary>
     public class DocumentPermission
     {
         public int PermissionID { get; set; }
@@ -140,6 +172,9 @@ namespace FileMatrix_Pabiran_.Models
         public string? PermissionLevel { get; set; }
     }
 
+    /// <summary>
+    /// AuditLog: System-wide activity tracking for security and compliance.
+    /// </summary>
     public class AuditLog
     {
         public long LogID { get; set; }
@@ -154,6 +189,9 @@ namespace FileMatrix_Pabiran_.Models
         public string? IpAddress { get; set; }
     }
 
+    /// <summary>
+    /// Notification: In-app alerts for users regarding document activity or system updates.
+    /// </summary>
     public class Notification
     {
         public int NotificationID { get; set; }
@@ -167,6 +205,9 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime? SentAt { get; set; }
     }
 
+    /// <summary>
+    /// DocumentComment: Social interaction and feedback loop for collaborators on a document.
+    /// </summary>
     public class DocumentComment
     {
         public int CommentID { get; set; }
@@ -176,6 +217,9 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// SystemSetting: Global Key/Value configuration managed by SuperAdmins.
+    /// </summary>
     public class SystemSetting
     {
         public int ID { get; set; }
@@ -185,6 +229,9 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime LastUpdated { get; set; }
     }
 
+    /// <summary>
+    /// RetentionPolicy: Automated rules for archiving or deleting documents based on their age.
+    /// </summary>
     public class RetentionPolicy
     {
         public int ID { get; set; }
@@ -210,5 +257,18 @@ namespace FileMatrix_Pabiran_.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsAccepted { get; set; } = false;
         public DateTime? AcceptedAt { get; set; }
+    }
+    /// <summary>
+    /// SystemInfrastructureTask: Background maintenance jobs managed by SuperAdmins.
+    /// </summary>
+    public class SystemInfrastructureTask
+    {
+        public int ID { get; set; }
+        public string Key { get; set; } = string.Empty; // e.g., "normalize-usernames"
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Status { get; set; } = "Pending"; // Pending, Running, Completed, Failed
+        public DateTime? LastRun { get; set; }
+        public string? LastResult { get; set; } // JSON or text summary of what happened
     }
 }

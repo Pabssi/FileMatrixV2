@@ -1,3 +1,13 @@
+@*
+    FileMatrix Master Layout.
+    
+    RESPONSIBILITY: Defines the global framing, navigation, and notification infrastructure.
+    DESIGN: Supports a 'Clean Canvas' mode (hideMainNav) for document viewing and 
+    implements a centralized modal system (AuthModal) and Toast alert pipeline.
+*@
+@{
+    bool hideMainNav = ViewData["hideMainNav"] != null && (bool)ViewData["hideMainNav"]!;
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,15 +19,14 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FileMatrix_Pabiran_.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shared/auth.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
     <header>
-        @{
-            // Allow pages to hide the default layout navbar by setting ViewData["HideMainNav"] = true
-            var hideMainNav = (ViewData["HideMainNav"] as bool?) ?? false;
-        }
-
+        @* REFINEMENT: The 'Hide Main Nav' pattern. 
+           Allows specialized views (like the Shared Document view) to strip away 
+           the global navigation for a full-screen, focused experience. *@
         @if (!hideMainNav)
         {
             <div class="app-navbar-container">
@@ -65,7 +74,7 @@
     }
 
     <!-- Global Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="globalToast" class="toast premium-toast hide align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body d-flex align-items-center gap-2">
@@ -77,41 +86,16 @@
         </div>
     </div>
 
-    <style>
-        /* Global Toast Styling */
-        .toast-container { z-index: 2100; }
-        .premium-toast { background: #ffffff !important; border: none !important; border-radius: 1rem !important; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important; padding: 0.5rem; }
-        .premium-toast--success { border-left: 5px solid #10b981 !important; }
-        .premium-toast--error { border-left: 5px solid #ef4444 !important; }
-    </style>
+    <link rel="stylesheet" href="~/css/shared/layout-toast.css" asp-append-version="true" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/auth-modal.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-        // Global Toast Notification System
-        function showToast(message, type = 'success') {
-            const toastEl = document.getElementById('globalToast');
-            if (!toastEl) return;
-            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-            
-            const iconEl = document.getElementById('globalToastIcon');
-            const messageEl = document.getElementById('globalToastMessage');
-            
-            toastEl.classList.remove('premium-toast--success', 'premium-toast--error');
-            toastEl.classList.add(type === 'success' ? 'premium-toast--success' : 'premium-toast--error');
-            
-            if (type === 'success') {
-                iconEl.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
-            } else {
-                iconEl.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
-            }
-            
-            messageEl.innerText = message;
-            toast.show();
-        }
-
+        // UNIFIED NOTIFICATION SYSTEM: 
+        // Automatically maps TempData messages and ReturnUrl redirects to the 
+        // global toast or authentication modal upon page load.
         $(document).ready(function() {
             // Auto-trigger login modal if ReturnUrl is present (means unauthorized redirect)
             const urlParams = new URLSearchParams(window.location.search);
@@ -139,10 +123,10 @@
                     const alertContainer = document.getElementById('authModalAlertContainer');
                     if (modalEl && alertContainer && window.bootstrap && bootstrap.Modal) {
                         alertContainer.innerHTML = `
-                            <div class="alert alert-primary d-flex align-items-center gap-2 border-0 shadow-sm" style="background: rgba(99, 102, 241, 0.1); color: #4f46e5; border-radius: 12px; margin-bottom: 1.5rem;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                <span class="fw-bold small">@Html.Raw(TempData["InviteLoginPrompt"])</span>
-                            </div>
+                                <div class="alert alert-primary auth-invite-alert reveal-fade-in">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                    <span class="fw-bold small">@Html.Raw(TempData["InviteLoginPrompt"])</span>
+                                </div>
                         `;
                         const authModal = new bootstrap.Modal(modalEl);
                         authModal.show();

@@ -26,6 +26,8 @@ namespace FileMatrix_Pabiran_.Models
         public string FileName { get; set; } = "";
         public string FileSizeFormatted { get; set; } = "0 B";
         public DateTime UpdatedAt { get; set; }
+        public string? GoogleDriveFileID { get; set; }
+        public string? GoogleDriveLink { get; set; }
         public string UploadedBy { get; set; } = "System";
         public string Author { get; set; } = "Admin User";
         public List<string> Tags { get; set; } = new();
@@ -33,6 +35,7 @@ namespace FileMatrix_Pabiran_.Models
         public string Status { get; set; } = "Published"; // Draft, Published
         public string? MimeType { get; set; }
         public string? PublicShareToken { get; set; }
+        public string PublicAccessLevel { get; set; } = "Restricted";
         public bool IsImage => MimeType?.StartsWith("image/") == true;
         public bool IsVideo => MimeType?.StartsWith("video/") == true;
         public bool IsPdf => MimeType == "application/pdf";

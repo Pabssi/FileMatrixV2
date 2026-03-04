@@ -11,6 +11,13 @@ using System.Threading.Tasks;
 
 namespace FileMatrix_Pabiran_.Services
 {
+    /// <summary>
+    /// RetentionWorker: The Background Hygiene Engine.
+    /// 
+    /// RESPONSIBILITY: Periodically (every 24h) scans all workplaces for 
+    /// Documents that have exceeded their retention thresholds (Archive/Delete).
+    /// PIPELINE: Auto-Archive -> 7-Day Alert -> Auto-Delete.
+    /// </summary>
     public class RetentionWorker : BackgroundService
     {
         private readonly ILogger<RetentionWorker> _logger;
@@ -49,6 +56,7 @@ namespace FileMatrix_Pabiran_.Services
             using (var scope = _scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                // Simple Query: Get every workplace that has an 'Active' retention policy enabled.
                 var activePolicies = await dbContext.RetentionPolicies
                     .Where(p => p.IsEnabled)
                     .ToListAsync();
@@ -67,10 +75,13 @@ namespace FileMatrix_Pabiran_.Services
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
             var now = DateTime.UtcNow;
 
-            // 1. Auto-Archive (Published/Draft -> Archived)
+            // STAGE 1: Auto-Archive. 
+            // Moves documents from Published/Draft to Archived if they haven't been 
+            // touched within the archival window.
             if (policy.AutoArchiveAfterDays.HasValue)
             {
                 var threshold = now.AddDays(-policy.AutoArchiveAfterDays.Value);
+                // Simple Query: Find all documents that are old enough to be archived based on the policy.
                 var docsToArchive = await context.Documents
                     .Where(d => d.WorkplaceID == policy.WorkplaceID && 
                                 d.Status != "Archived" && 
@@ -100,7 +111,9 @@ namespace FileMatrix_Pabiran_.Services
                 }
             }
 
-            // 2. Auto-Delete (Archived -> Deleted) & 3. 7-Day Notifications
+            // STAGE 2 & 3: Archival Lifecycle. 
+            // Triggers a 7-day warning email before permanently purging documents 
+            // that have exceeded the archive deletion threshold.
             if (policy.AutoDeleteAfterDays.HasValue)
             {
                 var deleteThreshold = now.AddDays(-policy.AutoDeleteAfterDays.Value);

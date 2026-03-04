@@ -1,0 +1,568 @@
+/* ======================================================
+   LANDING PAGE STYLES
+   Consistent design system with header & auth modal
+   ====================================================== */
+
+/* --- Full-width landing page shell --- */
+.landing-page {
+    margin-bottom: -60px;
+    /* negate body margin */
+}
+
+/* --- Hero --- */
+.landing-hero {
+    position: relative;
+    padding: 160px 0 100px;
+    overflow: hidden;
+    background: #fafbfe;
+}
+
+.landing-hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 50% at 70% 0%, rgba(79, 70, 229, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 0% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.landing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.08);
+    color: #4f46e5;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 28px;
+    letter-spacing: 0.02em;
+}
+
+.landing-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4f46e5;
+    animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.landing-hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.12;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+}
+
+.landing-hero-title-accent {
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.landing-hero-desc {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #64748b;
+    max-width: 540px;
+    margin-bottom: 32px;
+}
+
+/* Hero buttons */
+.landing-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    transition: all 0.25s ease;
+}
+
+.landing-btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    color: #fff;
+    box-shadow: 0 8px 28px rgba(79, 70, 229, 0.5);
+    transform: translateY(-2px);
+}
+
+.landing-btn-lg {
+    padding: 16px 32px;
+    font-size: 1rem;
+}
+
+.landing-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background: transparent;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.landing-btn-ghost:hover {
+    border-color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.03);
+    color: #1e293b;
+}
+
+.landing-btn-ghost-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.landing-btn-ghost-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Hero stats */
+.landing-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.landing-hero-stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.landing-hero-stat-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.landing-hero-stat-divider {
+    width: 1px;
+    height: 36px;
+    background: #e2e8f0;
+}
+
+/* Hero card (dashboard preview) */
+.landing-hero-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    max-width: 520px;
+    margin-left: auto;
+}
+
+.landing-hero-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.landing-hero-card-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.landing-hero-card-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e2e8f0;
+}
+
+.landing-hero-card-dots span:first-child {
+    background: #fca5a5;
+}
+
+.landing-hero-card-dots span:nth-child(2) {
+    background: #fde68a;
+}
+
+.landing-hero-card-dots span:last-child {
+    background: #86efac;
+}
+
+.landing-hero-card-title {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.landing-hero-card-body {
+    padding: 10px 20px;
+}
+
+.landing-hero-card-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.landing-hero-card-row:last-child {
+    border-bottom: none;
+}
+
+.landing-hero-card-row:hover {
+    background: #fafbfe;
+}
+
+.landing-hero-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.landing-hero-card-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* --- Sections --- */
+.landing-section {
+    padding: 120px 0;
+    background: #fff;
+}
+
+.landing-section-alt {
+    background: #f8fafc;
+}
+
+.landing-section-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.08);
+    color: #4f46e5;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+}
+
+.landing-section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+}
+
+.landing-section-subtitle {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #64748b;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+/* --- Feature Cards --- */
+.landing-feature-card {
+    padding: 32px 28px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    transition: all 0.25s ease;
+}
+
+.landing-feature-card:hover {
+    border-color: #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+    transform: translateY(-3px);
+}
+
+.landing-feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.landing-feature-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.landing-feature-desc {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* --- Benefit Cards --- */
+.landing-benefit-card {
+    padding: 36px 28px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    transition: all 0.25s ease;
+}
+
+.landing-benefit-card:hover {
+    border-color: #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+    transform: translateY(-3px);
+}
+
+.landing-benefit-metric {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.landing-benefit-metric-label {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.landing-benefit-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.landing-benefit-desc {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* --- Step Cards --- */
+.landing-step-card {
+    padding: 36px 28px;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    background: #fff;
+    height: 100%;
+    position: relative;
+    transition: all 0.25s ease;
+}
+
+.landing-step-card:hover {
+    border-color: #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+    transform: translateY(-3px);
+}
+
+.landing-step-number {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: rgba(79, 70, 229, 0.1);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.landing-step-line {
+    width: 32px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    margin-bottom: 16px;
+}
+
+.landing-step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.landing-step-desc {
+    font-size: 0.92rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* --- CTA --- */
+.landing-cta-section {
+    position: relative;
+    padding: 120px 0;
+    overflow: hidden;
+}
+
+.landing-cta-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.landing-cta-bg::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.12);
+    pointer-events: none;
+}
+
+.landing-cta-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    left: -60px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.08);
+    pointer-events: none;
+}
+
+.landing-cta-inner {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.landing-cta-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+}
+
+.landing-cta-desc {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 36px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 991px) {
+    .landing-hero {
+        padding: 130px 0 72px;
+    }
+
+    .landing-hero-title {
+        font-size: 2.6rem;
+    }
+
+    .landing-hero-card {
+        max-width: 100%;
+        margin: 40px auto 0;
+    }
+
+    .landing-section {
+        padding: 88px 0;
+    }
+}
+
+@media (max-width: 575px) {
+    .landing-hero {
+        padding: 120px 0 56px;
+    }
+
+    .landing-hero-title {
+        font-size: 2.1rem;
+    }
+
+    .landing-hero-stats {
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .landing-hero-stat-value {
+        font-size: 1.3rem;
+    }
+
+    .landing-section {
+        padding: 72px 0;
+    }
+
+    .landing-section-title {
+        font-size: 1.8rem;
+    }
+
+    .landing-trusted-logos {
+        gap: 24px;
+    }
+
+    .landing-trusted-logos span {
+        font-size: 0.9rem;
+    }
+
+    .landing-cta-title {
+        font-size: 1.8rem;
+    }
+
+    .landing-cta-section {
+        padding: 80px 0;
+    }
+
+    .landing-feature-card,
+    .landing-benefit-card,
+    .landing-step-card {
+        padding: 28px 22px;
+    }
+}

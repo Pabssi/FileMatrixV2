@@ -14,8 +14,18 @@ using System.IO;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// DocumentsController.Retention: Document Lifecycle Management.
+    /// 
+    /// RESPONSIBILITY: Manages automated persistence rules (Auto-Archive/Auto-Delete) 
+    /// for a specific workplace. 
+    /// NOTE: These settings are restricted to the Workplace Administrator.
+    /// </summary>
     public partial class DocumentsController
     {
+        /// <summary>
+        /// Retrieves or initializes the retention policy for the current workspace.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Retention()
         {

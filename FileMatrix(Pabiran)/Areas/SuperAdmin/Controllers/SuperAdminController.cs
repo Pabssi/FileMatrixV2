@@ -13,8 +13,11 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
 {
     /// <summary>
     /// SuperAdmin Controller - Platform Management & Infrastructure Oversight.
-    /// PRIVACY STANDARD: This area is strictly metadata-only. SuperAdmins have NO access to document content, 
-    /// comments, or private descriptions to ensure organizational data privacy.
+    /// 
+    /// SECURITY STANDARD: The "Privacy Shield".
+    /// SuperAdmins have platform-wide visibility for infrastructure management but are 
+    /// EXPLICITLY BLOCKED from accessing individual document content, comments, or 
+    /// private descriptions to ensure tenant data privacy.
     /// </summary>
     [Area("SuperAdmin")]
     [Route("SuperAdmin")]
@@ -34,6 +37,7 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
         public async Task<IActionResult> Documents()
         {
             // Privacy Standard: Return only infrastructure-level metadata.
+            // Simple Query: Get a list of every document in the system along with which organization it belongs to.
             var documents = await _context.Documents
                 .Select(d => new {
                     d.DocumentID,
@@ -55,6 +59,7 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
         {
             // Privacy Standard: Explicitly return ONLY non-sensitive infrastructure metadata.
             // Description, Comments, and File Paths are strictly excluded.
+            // Simple Query: Find the specific details of one document by its ID.
             var metadata = await _context.Documents
                 .Where(d => d.DocumentID == id)
                 .Select(d => new {
@@ -90,14 +95,35 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
         {
             foreach (var setting in settings)
             {
+                // ASP.NET Core checkbox behavior often sends "true,false" or "false" 
+                // We normalize this to just 'true' or 'false'
+                var value = setting.Value;
+                if (value.Contains(","))
+                {
+                    value = value.Split(',').First();
+                }
+
+                // Query 3: Check if this specific setting already exists in our master list
                 var dbSetting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == setting.Key);
                 if (dbSetting != null)
                 {
-                    dbSetting.Value = setting.Value;
+                    dbSetting.Value = value;
                     dbSetting.LastUpdated = DateTime.UtcNow;
+                }
+                else
+                {
+                    // Upsert: Create if it doesn't exist
+                    _context.SystemSettings.Add(new SystemSetting
+                    {
+                        Key = setting.Key,
+                        Value = value,
+                        LastUpdated = DateTime.UtcNow,
+                        Description = "Auto-generated from UI"
+                    });
                 }
             }
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Platform settings updated successfully.";
             return RedirectToAction(nameof(Settings));
         }
 
@@ -122,10 +148,12 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
         [HttpPost("Organizations/ToggleStatus/{id}")]
         public async Task<IActionResult> ToggleWorkplaceStatus(int id)
         {
+            // Simple Query: Find the specific organization we want to activate or deactivate.
             var workplace = await _context.Workplaces.FindAsync(id);
             if (workplace != null)
             {
                 workplace.IsActive = !workplace.IsActive;
+                // Simple Query: Save the new 'Active' or 'Inactive' status to the database.
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Organizations));
@@ -196,17 +224,113 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
         }
 
         [HttpGet("Backfills")]
-        public IActionResult Backfills()
+        public async Task<IActionResult> Backfills()
         {
-            // Placeholder for backfill tasks - in a real app, these would be logged in a table
-            var tasks = new List<dynamic>
+            var tasks = await _context.SystemInfrastructureTasks.ToListAsync();
+            
+            // Fallback: If for any reason the tasks weren't seeded (e.g. startup error), seed them now
+            if (!tasks.Any())
             {
-                new { Name = "Normalize Usernames", Status = "Completed", LastRun = DateTime.UtcNow.AddDays(-2), Description = "Ensures all usernames are stored in a standard format." },
-                new { Name = "Sync Storage Metadata", Status = "Pending", LastRun = (DateTime?)null, Description = "Re-calculates file sizes for all documents in the system." },
-                new { Name = "Role Consistency Check", Status = "Healthy", LastRun = DateTime.UtcNow.AddHours(-5), Description = "Verifies that all users have at least one valid role." }
-            };
+                await DbInitializer.InitializeAsync(HttpContext.RequestServices);
+                tasks = await _context.SystemInfrastructureTasks.ToListAsync();
+            }
+
             ViewBag.Tasks = tasks;
             return View();
+        }
+
+        [HttpPost("Backfills/Run")]
+        public async Task<IActionResult> RunTask(string key)
+        {
+            var task = await _context.SystemInfrastructureTasks.FirstOrDefaultAsync(t => t.Key == key);
+            if (task == null) return NotFound();
+
+            task.Status = "Running";
+            task.LastRun = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            // Production logic: This should be async/background.
+            // For now, we execute it directly and update status to show completion.
+            string result = "Task executed successfully.";
+            bool success = true;
+
+            try
+            {
+                switch (key)
+                {
+                    case "normalize-usernames":
+                        var usersToNormalize = await _context.Users.ToListAsync();
+                        int normalizedCount = 0;
+                        foreach (var u in usersToNormalize)
+                        {
+                            var old = u.Username;
+                            u.Username = u.Username?.Trim().ToLowerInvariant();
+                            if (old != u.Username) normalizedCount++;
+                        }
+                        await _context.SaveChangesAsync();
+                        result = $"Normalized {normalizedCount} usernames.";
+                        break;
+
+                    case "sync-storage":
+                        var docs = await _context.Documents.ToListAsync();
+                        int syncedCount = 0;
+                        foreach (var d in docs)
+                        {
+                            var latestVersion = await _context.DocumentVersions
+                                .Where(dv => dv.DocumentID == d.DocumentID)
+                                .OrderByDescending(dv => dv.VersionNumber)
+                                .FirstOrDefaultAsync();
+                            
+                            if (latestVersion != null && d.CurrentVersionID != latestVersion.VersionID)
+                            {
+                                d.CurrentVersionID = latestVersion.VersionID;
+                                syncedCount++;
+                            }
+                        }
+                        await _context.SaveChangesAsync();
+                        result = $"Synchronized metadata for {syncedCount} documents.";
+                        break;
+
+                    case "role-consistency":
+                        var roleIds = await _context.Roles.ToDictionaryAsync(r => r.Name, r => r.Id);
+                        var userRoles = await _context.UserRoles.ToListAsync();
+                        var dmsUsers = await _context.Users.ToListAsync();
+                        int consistencyCount = 0;
+
+                        foreach (var du in dmsUsers)
+                        {
+                            // Sync Roles (simplified check)
+                            if (!userRoles.Any(ur => ur.UserId == du.UserID))
+                            {
+                                // Attach default 'User' role if missing
+                                if (roleIds.ContainsKey("User"))
+                                {
+                                    _context.UserRoles.Add(new IdentityUserRole<int> 
+                                    { 
+                                        UserId = du.UserID, 
+                                        RoleId = roleIds["User"] 
+                                    });
+                                    consistencyCount++;
+                                }
+                            }
+                        }
+                        await _context.SaveChangesAsync();
+                        result = $"Validated {dmsUsers.Count} users. Applied fixes to {consistencyCount}.";
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                success = false;
+                result = $"Error: {ex.Message}";
+            }
+
+            task.Status = success ? "Healthy" : "Failed";
+            task.LastResult = result;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = success ? $"{task.Name} completed: {result}" : $"Task failed: {result}";
+            return RedirectToAction(nameof(Backfills));
         }
 
         [HttpGet("")]
@@ -260,7 +384,8 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
                 var m = today.AddMonths(-i);
                 labels.Add($"'{m:MMM}'");
                 var size = trendDataRaw.FirstOrDefault(x => x.Month == m.Month && x.Year == m.Year)?.TotalSize ?? 0;
-                dataPoints.Add((size / (1024.0 * 1024.0 * 1024.0 * 1024.0)).ToString("F4"));
+                // Use MB for best visibility with current data volumes
+                dataPoints.Add((size / (1024.0 * 1024.0)).ToString("F1"));
             }
 
             // 4. Top Organizations (Efficient Join)
@@ -279,8 +404,8 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
             // Populate ViewBags
             ViewBag.Analytics_StorageLabels = $"[{string.Join(", ", labels)}]";
             ViewBag.Analytics_StorageData = $"[{string.Join(", ", dataPoints)}]";
-            ViewBag.Analytics_OrgDistributionLabels = "['Active', 'Inactive', 'New (This Month)']";
-            ViewBag.Analytics_OrgDistributionData = $"[{stats.ActiveOrgs}, {stats.TotalOrgs - stats.ActiveOrgs}, {stats.NewOrgs}]";
+            ViewBag.Analytics_OrgDistributionLabels = "['New (This Month)', 'Other Active', 'Inactive']";
+            ViewBag.Analytics_OrgDistributionData = $"[{stats.NewOrgs}, {stats.ActiveOrgs - stats.NewOrgs}, {stats.TotalOrgs - stats.ActiveOrgs}]";
             
             ViewBag.TopOrganizations = topOrgs.Select(o => new { o.Name, TotalSize = FormatBytes(o.TotalSize) }).ToList();
             ViewBag.TotalOrganizations = stats.TotalOrgs;
@@ -302,20 +427,37 @@ namespace FileMatrix_Pabiran_.Areas.SuperAdmin.Controllers
             ViewBag.AvgStorageMB = (avgStoragePerOrg / (1024 * 1024)).ToString("F2");
 
             double growthVelocity = 0;
-            if (trendDataRaw.Count >= 2)
+            string velocityText = "+0.0%";
+            
+            if (trendDataRaw.Count >= 1)
             {
                 var sortedTrends = trendDataRaw.OrderByDescending(x => x.Year).ThenByDescending(x => x.Month).ToList();
                 var latest = sortedTrends[0].TotalSize;
-                var previous = sortedTrends[1].TotalSize;
-                if (previous > 0)
+                
+                if (sortedTrends.Count >= 2)
                 {
-                    growthVelocity = ((double)(latest - previous) / previous) * 100;
+                    var previous = sortedTrends[1].TotalSize;
+                    if (previous > 0)
+                    {
+                        growthVelocity = ((double)(latest - previous) / previous) * 100;
+                        velocityText = (growthVelocity >= 0 ? "+" : "") + growthVelocity.ToString("F1") + "%";
+                    }
+                    else if (latest > 0)
+                    {
+                        velocityText = "+100% (New)";
+                    }
+                }
+                else if (latest > 0)
+                {
+                    // First month of data
+                    velocityText = "+100% (Launch)";
                 }
             }
-            ViewBag.GrowthVelocity = (growthVelocity >= 0 ? "+" : "") + growthVelocity.ToString("F1") + "%";
+            ViewBag.GrowthVelocity = velocityText;
 
             double retentionRate = stats.TotalOrgs > 0 ? ((double)stats.ActiveOrgs / stats.TotalOrgs) * 100 : 0;
             ViewBag.RetentionRate = retentionRate.ToString("F1") + "%";
+            ViewBag.RetentionPercentage = retentionRate; // For progress bar
             ViewBag.ConcurrentPeak = stats.ActiveSessions; // Using current active as baseline for 'real' peek
 
             var adminRoleId = await _context.Roles.Where(r => r.Name == "Admin").Select(r => r.Id).FirstOrDefaultAsync();

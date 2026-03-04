@@ -1,5 +1,15 @@
-// auth-modal.js
-// Handles AJAX submission for the register form inside the auth modal.
+/**
+ * FileMatrix Authentication Orchestrator (auth-modal.js)
+ * 
+ * RESPONSIBILITY: Implements a "Seamless Auth" experience by handling 
+ * Identity login/register forms via AJAX, supporting partial DOM updates 
+ * and inline validation without full page reloads.
+ * 
+ * DESIGN: 
+ * 1. Success Handling: Triggers client-side redirects or tab switching.
+ * 2. Error Handling: Maps server-side ModelState errors back to UI fields.
+ * 3. Fallback: Supports full HTML response parsing for complex validation scenarios.
+ */
 (function () {
     function init() {
         document.addEventListener('submit', function (e) {
@@ -196,6 +206,9 @@
                         return;
                     }
 
+                    // STRATEGY: 'Fragment Patching'. 
+                    // If the server returns HTML instead of JSON (common for validation errors), 
+                    // we parse the fragment and replace only the relevant form in the modal.
                     if (js && js.html) {
                         try {
                             // Replace the modal pane that corresponds to the submitted form

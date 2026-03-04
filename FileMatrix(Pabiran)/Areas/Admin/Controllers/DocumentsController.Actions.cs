@@ -14,8 +14,17 @@ using System.IO;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// DocumentsController.Actions: Document State & Metadata Management.
+    /// 
+    /// RESPONSIBILITY: Handles non-content changes such as favoriting, status updates, 
+    /// organizational categorization, and archiving logic.
+    /// </summary>
     public partial class DocumentsController
     {
+        /// <summary>
+        /// Toggles the 'IsFavorite' flag. This is a per-document, per-workplace setting.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> ToggleFavorite(int id)
         {
@@ -45,12 +54,16 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return Json(new { success = true, status = doc.Status });
         }
 
+        /// <summary>
+        /// Moves a document between organizational categories and logs the transition for audit trail.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> MoveToCategory(int id, int? categoryId)
         {
             if (CurrentWorkplace == null || CurrentMembership == null) return Unauthorized();
             if (CurrentMembership.RoleID > 2) return Unauthorized();
 
+            // Simple Query: Find the document we want to move, including its current category name.
             var doc = await _context.Documents
                 .Include(d => d.Category)
                 .FirstOrDefaultAsync(d => d.DocumentID == id);
@@ -87,6 +100,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return Json(new { success = true, newCategoryName = newCatName });
         }
 
+        /// <summary>
+        /// Soft-archives a document. Archived documents are preserved but generally 
+        /// excluded from standard index queries.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Archive(int id)
         {
@@ -148,34 +165,5 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return Json(new { success = true });
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            if (CurrentWorkplace == null || CurrentMembership == null) return Unauthorized();
-            if (CurrentMembership.RoleID > 2) return Unauthorized();
-
-            var doc = await _context.Documents.FindAsync(id);
-            if (doc == null || doc.WorkplaceID != CurrentWorkplace.WorkplaceID) return NotFound();
-
-            // Note: In a real app, you might want to delete physical files or versions too.
-            // Log activity
-            var log = new AuditLog
-            {
-                WorkplaceID = CurrentWorkplace.WorkplaceID,
-                Action = "Document Deleted",
-                EntityType = "Document",
-                EntityID = id,
-                UserID = CurrentMembership.UserID,
-                PerformedAt = DateTime.UtcNow,
-                Details = $"Permanently deleted document: {doc.Title}"
-            };
-            _context.AuditLogs.Add(log);
-
-            // For now, we'll just remove the document record.
-            _context.Documents.Remove(doc);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true });
-        }
     }
 }

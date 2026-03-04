@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace FileMatrix_Pabiran_.Controllers
 {
+    /// <summary>
+    /// HomeController: The System Landing & Routing Hub.
+    /// 
+    /// RESPONSIBILITY: Serves the public landing page and implements the 
+    /// 'Smart Redirection' logic for authenticated users.
+    /// </summary>
     public class HomeController : Controller
     {
         private readonly FileMatrix_Pabiran_.Data.ApplicationDbContext _db;
@@ -17,6 +23,11 @@ namespace FileMatrix_Pabiran_.Controllers
             _db = db;
         }
 
+        /// <summary>
+        /// The primary entry point. 
+        /// LOGIC: If a user is logged in, they are automatically routed based on 
+        /// their highest priority context (SuperAdmin > Workplace Admin > Onboarding).
+        /// </summary>
         public async Task<IActionResult> Index()
         {
             try

@@ -1,0 +1,235 @@
+/* ============================================
+   Settings — Account & Workplace
+   ============================================ */
+
+.fw-extrabold {
+    font-weight: 800;
+}
+
+.ls-wide {
+    letter-spacing: 0.05em;
+}
+
+.settings-icon-box {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.icon-box-sm {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 0.5rem;
+}
+
+.premium-settings-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-settings-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 10px 10px -5px rgba(79, 70, 229, 0.04) !important;
+    border-color: #6366f1 !important;
+}
+
+.premium-settings-card:hover .settings-icon-box {
+    transform: scale(1.1);
+}
+
+.placeholder-card {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1 !important;
+}
+
+.transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Color Utilities */
+.bg-indigo-subtle {
+    background-color: rgba(79, 70, 229, 0.08) !important;
+}
+
+.text-indigo {
+    color: #4f46e5 !important;
+}
+
+.bg-warning-subtle {
+    background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+.text-warning {
+    color: #f59e0b !important;
+}
+
+.bg-primary-subtle {
+    background-color: rgba(37, 99, 235, 0.08) !important;
+}
+
+.text-primary {
+    color: #2563eb !important;
+}
+
+.bg-slate-subtle {
+    background-color: #f1f5f9 !important;
+}
+
+.text-slate {
+    color: #64748b !important;
+}
+
+/* Button & Tooling */
+.btn-indigo {
+    background-color: #4f46e5;
+    color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.btn-indigo:hover {
+    background-color: #4338ca;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.btn-indigo-gradient {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-indigo-gradient:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+    color: #ffffff;
+}
+
+.btn-outline-indigo {
+    color: #4f46e5;
+    border: 2px solid #4f46e5;
+    background: transparent;
+}
+
+.btn-outline-indigo:hover {
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+/* API Docs & Codes */
+.bg-indigo-dark {
+    background-color: #0f172a;
+}
+
+.bg-indigo-accent {
+    background-color: #4f46e5;
+}
+
+.text-indigo-lighter {
+    color: #e2e8f0;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.alert-premium-indigo {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+}
+
+/* Animations */
+.pulse-green-sm {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    position: relative;
+}
+
+.pulse-green-sm::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* Settings Form Specifics (from sub-pages) */
+.settings-form-container {
+    max-width: 850px;
+}
+
+.settings-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.settings-section-desc {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 2rem;
+}
+
+.form-premium-input {
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-color: #e2e8f0;
+    font-size: 0.95rem;
+}
+
+.form-premium-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
+}
+
+.settings-save-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+}
+
+.settings-save-btn:hover {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    transform: translateY(-1px);
+    box-shadow: 0 15px 20px -3px rgba(79, 70, 229, 0.4);
+}

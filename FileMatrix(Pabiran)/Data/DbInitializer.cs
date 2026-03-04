@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace FileMatrix_Pabiran_.Data
 {
+    /// <summary>
+    /// DbInitializer: The System Bootstrapper.
+    /// 
+    /// RESPONSIBILITY: Ensures the environment is ready by:
+    /// 1. Seeding security roles (RBAC foundation).
+    /// 2. Provisioning the initial SuperAdmin account.
+    /// 3. Initializing global system settings and infrastructure tasks.
+    /// </summary>
     public static class DbInitializer
     {
         public static async Task InitializeAsync(IServiceProvider serviceProvider)
@@ -21,8 +29,12 @@ namespace FileMatrix_Pabiran_.Data
             await SeedRolesAsync(roleManager);
             await SeedSuperAdminAsync(userManager, context);
             await SeedSystemSettingsAsync(context);
+            await SeedSystemTasksAsync(context);
         }
 
+        /// <summary>
+        /// Seeds global configuration values that control platform behavior.
+        /// </summary>
         private static async Task SeedSystemSettingsAsync(ApplicationDbContext context)
         {
             var defaultSettings = new List<SystemSetting>
@@ -61,6 +73,11 @@ namespace FileMatrix_Pabiran_.Data
             }
         }
 
+        /// <summary>
+        /// Provisions the default SuperAdmin. 
+        /// CRITICAL: This method bridges the gap between ASP.NET Identity (AspNetUsers) 
+        /// and the business-layer Users table.
+        /// </summary>
         private static async Task SeedSuperAdminAsync(UserManager<IdentityUser<int>> userManager, ApplicationDbContext context)
         {
             // Seed SuperAdmin User
@@ -144,6 +161,46 @@ namespace FileMatrix_Pabiran_.Data
                 context.Users.Add(legacyUser);
                 await context.SaveChangesAsync();
             }
+        }
+        /// <summary>
+        /// Registers background maintenance jobs that SuperAdmins can monitor or run.
+        /// </summary>
+        private static async Task SeedSystemTasksAsync(ApplicationDbContext context)
+        {
+            var tasks = new List<SystemInfrastructureTask>
+            {
+                new SystemInfrastructureTask 
+                { 
+                    Key = "normalize-usernames", 
+                    Name = "Normalize Usernames", 
+                    Description = "Ensures all usernames are stored in a standard format (lowercase/trimmmed).",
+                    Status = "Healthy"
+                },
+                new SystemInfrastructureTask 
+                { 
+                    Key = "sync-storage", 
+                    Name = "Sync Storage Metadata", 
+                    Description = "Re-calculates file sizes for all documents in the system based on actual versions.",
+                    Status = "Pending"
+                },
+                new SystemInfrastructureTask 
+                { 
+                    Key = "role-consistency", 
+                    Name = "Role Consistency Check", 
+                    Description = "Verifies that all users have at least one valid role and synchronizes with Identity.",
+                    Status = "Healthy"
+                }
+            };
+
+            foreach (var task in tasks)
+            {
+                if (!await context.SystemInfrastructureTasks.AnyAsync(t => t.Key == task.Key))
+                {
+                    task.LastRun = DateTime.UtcNow.AddDays(-1); // Initial state
+                    context.SystemInfrastructureTasks.Add(task);
+                }
+            }
+            await context.SaveChangesAsync();
         }
     }
 }

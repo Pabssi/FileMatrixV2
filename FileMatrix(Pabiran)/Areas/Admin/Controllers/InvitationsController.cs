@@ -8,6 +8,12 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin/Invitations")]
+    /// <summary>
+    /// InvitationsController: Workplace Onboarding & Growth.
+    /// 
+    /// RESPONSIBILITY: Manages the generation and delivery of invitation links 
+    /// used to onboard new members into the specific workplace.
+    /// </summary>
     public class InvitationsController : BaseAdminController
     {
         private readonly FileMatrix_Pabiran_.Services.EmailSenderService _emailSender;
@@ -34,6 +40,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return View(invitations);
         }
 
+        /// <summary>
+        /// Generates a unique onboarding token/code and optionally sends an 
+        /// invitation email to the recipient.
+        /// </summary>
         [HttpPost("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string? email, int? usageLimit, int roleId = 3, int expiryDays = 7)

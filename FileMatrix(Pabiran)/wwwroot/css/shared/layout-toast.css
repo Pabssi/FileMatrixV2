@@ -1,0 +1,37 @@
+/* ============================================
+   Shared Layout Toasts — Component UI
+   ============================================ */
+
+.toast-container {
+    z-index: 2000;
+}
+
+.premium-toast {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.premium-toast--success {
+    border-left: 4px solid #10b981;
+}
+
+.premium-toast--error {
+    border-left: 4px solid #ef4444;
+}
+
+/* Auth Modal Specific in JS */
+.auth-invite-alert {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}

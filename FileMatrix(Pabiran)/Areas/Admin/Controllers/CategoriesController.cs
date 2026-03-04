@@ -7,23 +7,35 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin/Categories")]
+    /// <summary>
+    /// CategoriesController: Workplace Taxonomy Management.
+    /// 
+    /// RESPONSIBILITY: Manages the organizational labels (Categories) used to group 
+    /// documents within a specific workplace.
+    /// </summary>
     public class CategoriesController : BaseAdminController
     {
         public CategoriesController(ApplicationDbContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Retrieves all categories for the current workplace and calculates 
+        /// document counts per category for the UI.
+        /// </summary>
         [HttpGet("")]
         public async Task<IActionResult> Index()
         {
             if (CurrentWorkplace == null) return RedirectToAction("Index", "Organizations", new { area = "" });
 
+            // Simple Query: Get all the categories that belong to our current workplace.
             var categories = await _context.Categories
                 .Where(c => c.WorkplaceID == CurrentWorkplace.WorkplaceID)
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
             // Optional: Count documents per category
+            // Simple Query: Count how many documents are in each category so we can show counts in the UI.
             ViewBag.CategoryCounts = await _context.Documents
                 .Where(d => d.WorkplaceID == CurrentWorkplace.WorkplaceID && d.CategoryID != null)
                 .GroupBy(d => d.CategoryID)
@@ -33,6 +45,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return View(categories);
         }
 
+        /// <summary>
+        /// Creates a new category with custom visual metadata (Icon/Color). 
+        /// Restricted to Workplace Admins.
+        /// </summary>
         [HttpPost("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string name, string? icon, string? color)

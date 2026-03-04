@@ -9,12 +9,21 @@ using System.Collections.Generic;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// NotificationsController: In-App User Alerting System.
+    /// 
+    /// RESPONSIBILITY: Manages the delivery and state (Read/Unread) of 
+    /// notifications for a specific user within a specific workplace.
+    /// </summary>
     public class NotificationsController : BaseAdminController
     {
         public NotificationsController(ApplicationDbContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Retrieves the notification stream, hard-partitioned by Workplace and Recipient.
+        /// </summary>
         public async Task<IActionResult> Index(string filter = "all")
         {
             if (CurrentWorkplace == null)

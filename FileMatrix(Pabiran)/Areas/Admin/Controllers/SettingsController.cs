@@ -8,6 +8,12 @@ using System.Security.Cryptography;
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    /// <summary>
+    /// SettingsController: User Profile & Organization Security Hub.
+    /// 
+    /// RESPONSIBILITY: Manages individual user preferences (Profiles/Security) 
+    /// and organization-level integration credentials (API Keys).
+    /// </summary>
     public class SettingsController : BaseAdminController
     {
         private readonly UserManager<IdentityUser<int>> _userManager;
@@ -57,6 +63,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
+        /// <summary>
+        /// Manages identity-sensitive settings like Passwords and Two-Factor Authentication 
+        /// by bridging to the ASP.NET Identity <see cref="UserManager"/>.
+        /// </summary>
         public async Task<IActionResult> Security()
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -123,6 +133,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return RedirectToAction(nameof(Security));
         }
 
+        /// <summary>
+        /// Manages the Workplace Integration API Key. This key allows external 
+        /// systems to interact with the DMS under the workplace context.
+        /// </summary>
         public IActionResult Integrations()
         {
             if (CurrentWorkplace == null) return RedirectToAction("Index", "Organizations", new { area = "" });

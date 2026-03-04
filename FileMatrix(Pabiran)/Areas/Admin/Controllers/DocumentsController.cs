@@ -14,14 +14,27 @@ using System;
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    /// <summary>
+    /// DocumentsController: The Central Hub for Workplace Asset Management.
+    /// 
+    /// RESPONSIBILITY: Orchestrates all document-related actions (Listing, Uploading, Sharing, Actions).
+    /// Note: This controller is split into multiple partial files for maintainability.
+    /// Core file operations are delegated to the <see cref="DocumentService"/>.
+    /// </summary>
     public partial class DocumentsController : BaseAdminController
     {
         private readonly FileMatrix_Pabiran_.Services.DocumentService _documentService;
+        private readonly FileMatrix_Pabiran_.Services.CloudinaryService _cloudinaryService;
         private readonly FileMatrix_Pabiran_.Services.EmailSenderService _emailSender;
 
-        public DocumentsController(FileMatrix_Pabiran_.Data.ApplicationDbContext context, FileMatrix_Pabiran_.Services.DocumentService documentService, FileMatrix_Pabiran_.Services.EmailSenderService emailSender) : base(context)
+        public DocumentsController(
+            FileMatrix_Pabiran_.Data.ApplicationDbContext context, 
+            FileMatrix_Pabiran_.Services.DocumentService documentService, 
+            FileMatrix_Pabiran_.Services.CloudinaryService cloudinaryService,
+            FileMatrix_Pabiran_.Services.EmailSenderService emailSender) : base(context)
         {
             _documentService = documentService;
+            _cloudinaryService = cloudinaryService;
             _emailSender = emailSender;
         }
 
@@ -53,6 +66,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 docQuery = docQuery.Where(d => d.CategoryID == categoryId);
             }
 
+            // Simple Query: Look up all documents that match our filters (category, search text, etc.)
             var documentsRaw = await docQuery
                 .OrderByDescending(d => d.UpdatedAt ?? d.CreatedAt)
                 .ToListAsync();
@@ -67,12 +81,14 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 Documents = new List<DocumentItemViewModel>()
             };
 
+            // Simple Query: Get all the category names for our workplace so we can show them in the list
             var categories = await _context.Categories
                 .Where(c => c.WorkplaceID == CurrentWorkplace.WorkplaceID)
                 .ToDictionaryAsync(c => c.CategoryID, c => c.Name);
 
             foreach (var doc in documentsRaw)
             {
+                // Simple Query: For each document, find its most recent version to get the file size and uploader
                 var latestVersion = await _context.DocumentVersions
                     .Where(v => v.DocumentID == doc.DocumentID)
                     .OrderByDescending(v => v.VersionNumber)
@@ -92,14 +108,17 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                     FileSizeFormatted = FormatBytes(latestVersion?.FileSizeBytes ?? 0),
                     CurrentVersionNumber = latestVersion?.VersionNumber.ToString("0.0") ?? "1.0",
                     UpdatedAt = doc.UpdatedAt ?? doc.CreatedAt,
+                    GoogleDriveFileID = doc.GoogleDriveFileID,
+                    GoogleDriveLink = doc.GoogleDriveLink,
                     UploadedBy = uploaderName,
                     Author = uploaderName,
                     IsFavorite = doc.IsFavorite,
                     Status = doc.Status ?? "Published",
                     MimeType = latestVersion?.MimeType,
                     PublicShareToken = doc.PublicShareToken,
+                    PublicAccessLevel = doc.PublicAccessLevel,
                     Tags = new List<string> { (doc.CategoryID != null && categories.ContainsKey(doc.CategoryID.Value) ? categories[doc.CategoryID.Value].ToLower() : "general"), "report" },
-                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken)
+                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken) && (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor")
                 });
             }
 
@@ -131,26 +150,53 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 
             bool isAuthorized = false;
 
-            // Check token
-            if (!string.IsNullOrEmpty(token) && doc.PublicShareToken == token)
+            // Unified Link System: The token is now MANDATORY for all shared access.
+            // If the token is missing or incorrect, we return NotFound (security by obscurity).
+            if (!string.IsNullOrEmpty(token))
             {
-                isAuthorized = true;
-            }
-            else if (CurrentWorkplace != null && CurrentMembership != null && doc.WorkplaceID == CurrentWorkplace.WorkplaceID)
-            {
-                isAuthorized = true;
-            }
-            else if (User.Identity?.IsAuthenticated == true)
-            {
-                var email = User.FindFirstValue(ClaimTypes.Email);
-                var userId = await _context.Users.Where(u => u.Email == email).Select(u => u.UserID).FirstOrDefaultAsync();
-                if (userId > 0)
+                if (doc.PublicShareToken != token) return NotFound();
+
+                // If token is valid, check if it's public or restricted
+                if (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor")
                 {
-                    isAuthorized = await _context.DocumentPermissions.AnyAsync(p => p.DocumentID == id && p.UserID == userId);
+                    isAuthorized = true;
+                }
+            }
+            
+            // Check internal workspace permissions if not already authorized by public link
+            if (!isAuthorized)
+            {
+                if (CurrentWorkplace != null && CurrentMembership != null && doc.WorkplaceID == CurrentWorkplace.WorkplaceID)
+                {
+                    isAuthorized = true;
+                }
+                else if (User.Identity?.IsAuthenticated == true)
+                {
+                    var email = User.FindFirstValue(ClaimTypes.Email);
+                    var userId = await _context.Users.Where(u => u.Email == email).Select(u => u.UserID).FirstOrDefaultAsync();
+                    if (userId > 0)
+                    {
+                        isAuthorized = await _context.DocumentPermissions.AnyAsync(p => p.DocumentID == id && p.UserID == userId);
+                    }
                 }
             }
 
-            if (!isAuthorized) return Challenge();
+            if (!isAuthorized)
+            {
+                // REDIRECT: If access is restricted (or not authorized) and user is anonymous,
+                // send them to Home with a clear prompt.
+                if (User.Identity?.IsAuthenticated != true && !string.IsNullOrEmpty(token) && doc.PublicShareToken == token)
+                {
+                    TempData["InviteLoginPrompt"] = "This document is restricted. Please sign in to verify your access.";
+                    return RedirectToAction("Index", "Home", new { ReturnUrl = Url.Action("Details", "Documents", new { id = id, token = token }) });
+                }
+
+                // If they have a valid token but it's restricted, challenge them to log in
+                if (!string.IsNullOrEmpty(token) && doc.PublicShareToken == token) return Challenge();
+                
+                // Otherwise, simple 404
+                return NotFound();
+            }
 
             var latestVersion = await _context.DocumentVersions
                 .Where(v => v.DocumentID == doc.DocumentID)
@@ -192,13 +238,16 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                     FileSizeFormatted = FormatBytes(latestVersion?.FileSizeBytes ?? 0),
                     CurrentVersionNumber = latestVersion?.VersionNumber.ToString("0.0") ?? "1.0",
                     UpdatedAt = doc.UpdatedAt ?? doc.CreatedAt,
+                    GoogleDriveFileID = doc.GoogleDriveFileID,
+                    GoogleDriveLink = doc.GoogleDriveLink,
                     UploadedBy = uploaderName,
                     IsFavorite = doc.IsFavorite,
                     Status = doc.Status ?? "Published",
                     CategoryName = category?.Name ?? "Uncategorized",
                     MimeType = latestVersion?.MimeType,
                     PublicShareToken = doc.PublicShareToken,
-                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken)
+                    PublicAccessLevel = doc.PublicAccessLevel,
+                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken) && (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor")
                 }
             };
 

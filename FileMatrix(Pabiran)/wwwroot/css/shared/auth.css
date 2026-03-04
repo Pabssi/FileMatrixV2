@@ -1,0 +1,279 @@
+/* ============================================
+   Auth Modal — Premium Design System
+   Consistent with landing page brand
+   ============================================ */
+
+/* Card shell */
+#authModal .auth-modal-card {
+    border-radius: 20px;
+    border: 0;
+    box-shadow:
+        0 25px 60px rgba(15, 23, 42, 0.3),
+        0 4px 12px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+
+#authModal .auth-modal-dialog {
+    max-width: 440px;
+}
+
+/* Header — dark gradient, consistent with brand */
+#authModal .auth-modal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 1.75rem 2rem 1.5rem 2rem;
+    position: relative;
+}
+
+/* Subtle decorative background element */
+#authModal .auth-modal-header::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.15);
+    pointer-events: none;
+}
+
+#authModal .auth-modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 30%;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.1);
+    pointer-events: none;
+}
+
+/* Logo — matches the landing-nav brand square */
+#authModal .auth-modal-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+}
+
+
+
+/* Title */
+#authModal #authModalTitle {
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
+}
+
+/* Subtitle */
+#authModal .auth-modal-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    margin-top: 2px;
+}
+
+/* Close button */
+#authModal .auth-modal-close {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.3rem;
+    line-height: 1;
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    position: relative;
+    z-index: 1;
+}
+
+#authModal .auth-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* Body inner padding */
+#authModal .auth-modal-body-inner {
+    padding: 1.75rem 2rem 0.5rem 2rem;
+}
+
+/* Form labels */
+#authModal .form-label {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #334155;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* Form inputs */
+#authModal .form-control {
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    padding: 11px 14px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    color: #1e293b;
+}
+
+#authModal .form-control:hover {
+    border-color: #cbd5e1;
+}
+
+#authModal .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    background: #fff;
+}
+
+#authModal .form-control::placeholder {
+    color: #94a3b8;
+}
+
+/* Checkbox */
+#authModal .form-check-input {
+    border-radius: 0.35rem;
+    border-color: #cbd5e1;
+}
+
+#authModal .form-check-input:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+
+#authModal .form-check-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Primary submit button */
+#authModal .btn-primary {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border: none;
+    width: 100%;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    transition: all 0.25s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#authModal .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#authModal .btn-spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#authModal .btn-primary:hover:not(:disabled),
+#authModal .btn-primary:focus:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    box-shadow: 0 8px 28px rgba(79, 70, 229, 0.5);
+    transform: translateY(-1px);
+}
+
+#authModal .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+}
+
+/* Footer bar */
+#authModal .auth-modal-footer-bar {
+    text-align: center;
+    padding: 1rem 2rem 1.5rem 2rem;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+#authModal .auth-modal-footer-bar a.auth-toggle-link {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+#authModal .auth-modal-footer-bar a.auth-toggle-link:hover {
+    color: #4338ca;
+    text-decoration: underline;
+}
+
+/* Validation messages */
+#authModal .text-danger {
+    font-size: 0.8rem;
+}
+
+/* Success alert */
+#authModal .auth-modal-alert {
+    border-radius: 10px;
+    margin: 0.75rem 2rem;
+    font-size: 0.875rem;
+}
+
+/* Divider override for submit */
+#authModal .d-flex.justify-content-end {
+    display: flex !important;
+    justify-content: stretch !important;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    #authModal .auth-modal-dialog {
+        margin: 0.75rem;
+    }
+
+    #authModal .auth-modal-header {
+        padding: 1.5rem 1.25rem 1.25rem 1.25rem;
+    }
+
+    #authModal .auth-modal-body-inner {
+        padding: 1.25rem 1.25rem 0.5rem 1.25rem;
+    }
+
+    #authModal .auth-modal-footer-bar {
+        padding: 0.75rem 1.25rem 1.25rem 1.25rem;
+    }
+
+    #authModal .btn-primary {
+        padding: 0.7rem 1rem;
+    }
+}

@@ -14,8 +14,19 @@ using System.IO;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// DocumentsController.Sharing: The Collaborative Access Hub.
+    /// 
+    /// RESPONSIBILITY: Manages both internal team permissions and external guest sharing.
+    /// DESIGN: Implements a "Unified Link System" where a single token can represent 
+    /// public access or a restricted invite-only landing page.
+    /// </summary>
     public partial class DocumentsController
     {
+        /// <summary>
+        /// Fetches the consolidated sharing state (Permissions, Links, Pending Invites) 
+        /// to populate the sharing modal.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetShareDetails(int id)
         {
@@ -25,6 +36,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             if (doc == null || doc.WorkplaceID != CurrentWorkplace.WorkplaceID)
                 return Json(new { success = false, message = "Document not found." });
 
+            // Simple Query: Find all people who have been given special access to this specific file.
             var permissions = await _context.DocumentPermissions
                 .Where(p => p.DocumentID == id)
                 .Select(p => new
@@ -38,8 +50,22 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 })
                 .ToListAsync();
 
-            var publicLink = string.IsNullOrEmpty(doc.PublicShareToken) ? null :
-                Url.Action("Document", "Shared", new { area = "", id = id, token = doc.PublicShareToken }, HttpContext.Request.Scheme);
+            // Ensure a token exists for the unified link system
+            if (string.IsNullOrEmpty(doc.PublicShareToken))
+            {
+                doc.PublicShareToken = Guid.NewGuid().ToString("n");
+                // Secure by default: new shares are Restricted (Invite Only)
+                doc.PublicAccessLevel = "Restricted"; 
+                await _context.SaveChangesAsync();
+            }
+            else if (string.IsNullOrEmpty(doc.PublicAccessLevel))
+            {
+                // Fix for existing documents with token but no level
+                doc.PublicAccessLevel = "Restricted";
+                await _context.SaveChangesAsync();
+            }
+
+            var publicLink = Url.Action("Document", "Shared", new { area = "", id = id, token = doc.PublicShareToken }, HttpContext.Request.Scheme);
 
             var owner = await _context.Users
                 .Where(u => u.UserID == doc.CreatedByUserID)
@@ -63,8 +89,8 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return Json(new
             {
                 success = true,
-                isPublic = !string.IsNullOrEmpty(doc.PublicShareToken),
-                publicAccessLevel = doc.PublicAccessLevel ?? "Viewer",
+                isPublic = doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor",
+                publicAccessLevel = doc.PublicAccessLevel ?? "Restricted",
                 publicLink = publicLink,
                 permissions = permissions,
                 pendingInvites = pendingInvites,
@@ -72,6 +98,9 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             });
         }
 
+        /// <summary>
+        /// Updates the visibility of the "Unified Link" (Restricted, Viewer, or Editor).
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> UpdatePublicAccess(int id, bool enabled, string level)
         {
@@ -91,8 +120,13 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             }
             else
             {
-                doc.PublicShareToken = null;
-                // We keep the level as preference or reset it, doesn't matter much if token is null
+                // Unification: Instead of nulling the token, we set it to Restricted.
+                // This means the link still exists but requires login.
+                if (string.IsNullOrEmpty(doc.PublicShareToken))
+                {
+                    doc.PublicShareToken = Guid.NewGuid().ToString("n");
+                }
+                doc.PublicAccessLevel = "Restricted";
             }
 
             await _context.SaveChangesAsync();
@@ -111,11 +145,16 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             _context.AuditLogs.Add(log);
             await _context.SaveChangesAsync();
 
-            var publicLink = enabled ? Url.Action("Document", "Shared", new { area = "", id = id, token = doc.PublicShareToken }, HttpContext.Request.Scheme) : null;
+            var publicLink = Url.Action("Document", "Shared", new { area = "", id = id, token = doc.PublicShareToken }, HttpContext.Request.Scheme);
 
-            return Json(new { success = true, publicLink = publicLink });
+            return Json(new { success = true, publicLink = publicLink, accessLevel = doc.PublicAccessLevel });
         }
 
+        /// <summary>
+        /// Grants access to a specific email address. 
+        /// If the user exists, sets a DocumentPermission. 
+        /// If not, creates a DocumentShareInvitation for future registration.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> AddUserPermission(int id, string email, string role)
         {
@@ -124,6 +163,14 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 
             var doc = await _context.Documents.FindAsync(id);
             if (doc == null || doc.WorkplaceID != CurrentWorkplace.WorkplaceID) return NotFound();
+
+            // Ensure a token exists for the unified link system
+            if (string.IsNullOrEmpty(doc.PublicShareToken))
+            {
+                doc.PublicShareToken = Guid.NewGuid().ToString("n");
+                if (string.IsNullOrEmpty(doc.PublicAccessLevel)) doc.PublicAccessLevel = "Restricted";
+                await _context.SaveChangesAsync();
+            }
 
             var docLink = Url.Action("Document", "Shared", new { area = "", id = id, token = doc.PublicShareToken }, HttpContext.Request.Scheme);
             var inviterName = CurrentMembership != null

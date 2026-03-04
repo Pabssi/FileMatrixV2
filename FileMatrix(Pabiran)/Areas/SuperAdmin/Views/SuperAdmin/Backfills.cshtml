@@ -5,48 +5,7 @@
 }
 
 @section Head {
-    <style>
-        .backfill-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .backfill-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-completed { background: #dcfce7; color: #166534; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-healthy { background: #ecfdf5; color: #059669; }
-
-        .btn-run-task {
-            background: #4f46e5;
-            color: #fff;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: background 0.2s;
-        }
-
-        .btn-run-task:hover {
-            background: #4338ca;
-            color: #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/superadmin/backfills.css" asp-append-version="true" />
 }
 
 <div class="superadmin-header reveal-on-scroll">
@@ -55,23 +14,32 @@
 </div>
 
 <div class="reveal-on-scroll">
-    @if (tasks != null && tasks.Any())
+@if (tasks != null && tasks.Any())
+{
+    @foreach (var task in tasks)
     {
-        @foreach (var task in tasks)
-        {
-            <div class="backfill-card d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center gap-3 mb-1">
-                        <h5 class="mb-0 fw-bold">@task.Name</h5>
-                        <span class="status-badge status-@(task.Status.ToLower())">@task.Status</span>
-                    </div>
-                    <p class="text-muted small mb-1">@task.Description</p>
-                    <small class="text-muted">Last Run: @(task.LastRun?.ToString("MMM dd, yyyy HH:mm") ?? "Never")</small>
+        <div class="backfill-card d-flex align-items-center justify-content-between">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-1">
+                    <h5 class="mb-0 fw-bold">@task.Name</h5>
+                    <span class="status-badge status-@(task.Status.ToLower())">@task.Status</span>
                 </div>
-                <button class="btn-run-task">Run Task Now</button>
+                <p class="text-muted small mb-1">@task.Description</p>
+                @if (!string.IsNullOrEmpty(task.LastResult))
+                {
+                    <p class="text-primary x-small mb-1"><strong>Last Result:</strong> @task.LastResult</p>
+                }
+                <small class="text-muted">Last Run: @(task.LastRun?.ToString("MMM dd, yyyy HH:mm") ?? "Never")</small>
             </div>
-        }
+            <form asp-action="RunTask" method="post">
+                <input type="hidden" name="key" value="@task.Key" />
+                <button type="submit" class="btn-run-task" @(task.Status == "Running" ? "disabled" : "")>
+                    @(task.Status == "Running" ? "Processing..." : "Run Task Now")
+                </button>
+            </form>
+        </div>
     }
+}
     else
     {
         <div class="alert alert-info py-4 text-center">

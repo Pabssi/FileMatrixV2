@@ -7,12 +7,23 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin/Audit")]
+    /// <summary>
+    /// AuditController: Workplace Activity Oversight.
+    /// 
+    /// RESPONSIBILITY: Provides a searchable interface for administrators to 
+    /// monitor all significant events (Document changes, user status toggles) 
+    /// within their workplace.
+    /// </summary>
     public class AuditController : BaseAdminController
     {
         public AuditController(ApplicationDbContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Retrieves and filters the workplace audit trail based on action types 
+        /// and text queries.
+        /// </summary>
         public async Task<IActionResult> Index(string? query, string? actionFilter)
         {
             if (CurrentWorkplace == null) return RedirectToAction("Index", "Organizations", new { area = "" });

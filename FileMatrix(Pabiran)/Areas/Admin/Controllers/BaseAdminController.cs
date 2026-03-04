@@ -8,6 +8,16 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// BaseAdminController: The Security & Context Hub for the Admin Area.
+    /// 
+    /// DESIGN PATTERN: Session-Scoped Isolation. 
+    /// This controller ensures that ALL administrative actions are strictly contained within a "Current Workplace".
+    /// It automatically resolves:
+    /// 1. The Active Workplace (from cookies or membership).
+    /// 2. The User's Role within that specific workplace.
+    /// 3. Security blocks (suspensions, SuperAdmin restrictions).
+    /// </summary>
     [Area("Admin")]
     public abstract class BaseAdminController : Controller
     {

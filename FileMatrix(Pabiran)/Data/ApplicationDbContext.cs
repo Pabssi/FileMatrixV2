@@ -5,6 +5,14 @@ using FileMatrix_Pabiran_.Models;
 
 namespace FileMatrix_Pabiran_.Data
 {
+    /// <summary>
+    /// ApplicationDbContext: The Data Persistence & Relationship Layer.
+    /// 
+    /// ROLE: This context bridges three distinct domain areas:
+    /// 1. ASP.NET Identity (Authentication/Security).
+    /// 2. Platform Governance (Global settings/Tasks).
+    /// 3. Workplace/Tenant Data (Documents/Members/Permissions).
+    /// </summary>
     public class ApplicationDbContext : IdentityDbContext<IdentityUser<int>, IdentityRole<int>, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -28,12 +36,16 @@ namespace FileMatrix_Pabiran_.Data
         public DbSet<DocumentComment> DocumentComments { get; set; }
         public DbSet<RetentionPolicy> RetentionPolicies { get; set; }
         public DbSet<DocumentShareInvitation> DocumentShareInvitations { get; set; }
+        public DbSet<SystemInfrastructureTask> SystemInfrastructureTasks { get; set; }
 
+        /// <summary>
+        /// OnModelCreating: Configures the schema, constraints, and relationships using the Fluent API.
+        /// </summary>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // === Users ===
+            // === Users (DMS Profile Extension) ===
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("Users");
@@ -51,7 +63,7 @@ namespace FileMatrix_Pabiran_.Data
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
-            // === Workplaces ===
+            // === Workplaces (Multi-Tenant Containers) ===
             modelBuilder.Entity<Workplace>(entity =>
             {
                 entity.ToTable("Workplaces");
@@ -132,7 +144,7 @@ namespace FileMatrix_Pabiran_.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // === Documents ===
+            // === Documents (Core Assets) ===
             modelBuilder.Entity<Document>(entity =>
             {
                 entity.ToTable("Documents");

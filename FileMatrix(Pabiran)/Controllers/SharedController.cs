@@ -7,6 +7,15 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace FileMatrix_Pabiran_.Controllers
 {
+    /// <summary>
+    /// SharedController: The External & Guest Access Gateway.
+    /// 
+    /// LOGIC: The "Authorization Cascade".
+    /// Access follows this priority:
+    /// 1. Public Link Token (If access is Viewer/Editor).
+    /// 2. Individual Permissions (Direct user-to-document grants).
+    /// 3. Workplace Membership (Internal team access).
+    /// </summary>
     [AllowAnonymous]
     public class SharedController : Controller
     {
@@ -17,6 +26,11 @@ namespace FileMatrix_Pabiran_.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// The 'Document Gateway': Enforces the Authorization Cascade to determine 
+        /// if the requester (Guest, Authenticated Guest, or Team Member) can view 
+        /// the document metadata.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Document(int id, string? token = null)
         {
@@ -27,16 +41,21 @@ namespace FileMatrix_Pabiran_.Controllers
 
             bool isAuthorized = false;
 
-            // 1. Check if public link token is valid AND public access is enabled
-            if (!string.IsNullOrEmpty(token) && doc.PublicShareToken == token)
+            // Unified Link System: The token is now MANDATORY for all shared access.
+            // If the token is missing or incorrect, we return NotFound (security by obscurity).
+            // The token is always required for public access, even if the level is Viewer/Editor.
+            if (string.IsNullOrEmpty(token) || doc.PublicShareToken != token)
             {
-                if (doc.PublicAccessLevel != null)
-                {
-                    isAuthorized = true;
-                }
+                return NotFound();
             }
 
-            // 2. Check if user is authenticated and has explicit permission
+            // 1. If public access is enabled (Viewer/Editor), and the token is correct, grant immediate access
+            if (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor")
+            {
+                isAuthorized = true;
+            }
+
+            // 2. If access is NOT authorized yet, check for authenticated user permissions
             if (!isAuthorized && User.Identity?.IsAuthenticated == true)
             {
                 var email = User.FindFirstValue(ClaimTypes.Email);
@@ -45,7 +64,9 @@ namespace FileMatrix_Pabiran_.Controllers
                     var userId = await _context.Users.Where(u => u.Email == email).Select(u => u.UserID).FirstOrDefaultAsync();
                     if (userId > 0)
                     {
-                        // Auto-claim any pending email invitations
+                        // RE-CLAIM: The 'Invite-to-Permission' bridge. 
+                        // If the user lands here via a token but has a pending 
+                        // individual invite, we materialize that into a permanent Permission.
                         var pendingInvite = await _context.DocumentShareInvitations
                             .FirstOrDefaultAsync(i => i.DocumentID == id && i.Email == email && !i.IsAccepted);
 
@@ -70,13 +91,13 @@ namespace FileMatrix_Pabiran_.Controllers
                         }
                         else
                         {
+                            // Check direct document permissions
                             isAuthorized = await _context.DocumentPermissions.AnyAsync(p => p.DocumentID == id && p.UserID == userId);
                             
                             // Fallback: if they are a member of the workplace that owns this document
                             if (!isAuthorized)
                             {
-                                var isMember = await _context.WorkplaceMembers.AnyAsync(m => m.WorkplaceID == doc.WorkplaceID && m.UserID == userId);
-                                if (isMember) isAuthorized = true;
+                                isAuthorized = await _context.WorkplaceMembers.AnyAsync(m => m.WorkplaceID == doc.WorkplaceID && m.UserID == userId);
                             }
                         }
                     }
@@ -85,12 +106,18 @@ namespace FileMatrix_Pabiran_.Controllers
 
             if (!isAuthorized) 
             {
-                // If not authorized and not logged in, redirect to Home with a return URL and a login prompt
+                // REDIRECT: If access is restricted (or not authorized) and user is anonymous,
+                // send them to Home with a clear prompt.
                 if (User.Identity?.IsAuthenticated != true)
                 {
-                    TempData["InviteLoginPrompt"] = "Please sign in to access your shared document.";
+                    // SMART REDIRECT: Redirecting to the landing page with a return URL 
+                    // ensures guests are prompted to log in without losing their 
+                    // intended destination.
+                    TempData["InviteLoginPrompt"] = "This document is restricted. Please sign in to verify your access.";
                     return RedirectToAction("Index", "Home", new { ReturnUrl = Url.Action("Document", "Shared", new { id = id, token = token }) });
                 }
+                
+                // FORBID: If they are logged in but still don't have access
                 return Forbid();
             }
 

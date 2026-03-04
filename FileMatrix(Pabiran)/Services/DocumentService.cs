@@ -10,38 +10,44 @@ using System.Threading.Tasks;
 
 namespace FileMatrix_Pabiran_.Services
 {
+    /// <summary>
+    /// DocumentService: The File System & Versioning Engine.
+    /// 
+    /// STRATEGY: Physical-First Storage with Database Tracking.
+    /// 1. Storage: Files are stored in 'wwwroot/uploads/{WorkplaceID}/' using GUIDs for collision prevention.
+    /// 2. Versioning: Every change creates a NEW record in the DocumentVersions table.
+    /// 3. Immutability: Standard files are never overwritten; only new versions are appended.
+    /// </summary>
     public class DocumentService
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly CloudinaryService _cloudinary;
+        private readonly GoogleDriveService _googleDrive;
 
-        public DocumentService(ApplicationDbContext context, IWebHostEnvironment environment)
+        public DocumentService(ApplicationDbContext context, IWebHostEnvironment environment, CloudinaryService cloudinary, GoogleDriveService googleDrive)
         {
             _context = context;
             _environment = environment;
+            _cloudinary = cloudinary;
+            _googleDrive = googleDrive;
         }
 
+        /// <summary>
+        /// Orchestrates the 'Initial Ingestion': Saves the physical file under 
+        /// the workplace directory, creates the base Document record, and initializes 
+        /// the first immutable version (v1.0).
+        /// </summary>
         public async Task<Document> UploadDocumentAsync(IFormFile file, string title, string? description, int workplaceId, int userId, int? folderId = null, int? categoryId = null)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is empty");
 
-            // 1. Ensure upload directory exists
-            var uploadsRoot = Path.Combine(_environment.WebRootPath, "uploads", workplaceId.ToString());
-            if (!Directory.Exists(uploadsRoot))
+            // 1. Upload to Cloudinary instead of local disk
+            string secureUrl;
+            using (var stream = file.OpenReadStream())
             {
-                Directory.CreateDirectory(uploadsRoot);
-            }
-
-            // 2. Generate unique filename to avoid collisions
-            var fileExtension = Path.GetExtension(file.FileName);
-            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(uploadsRoot, uniqueFileName);
-
-            // 3. Save physical file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
+                secureUrl = await _cloudinary.UploadAsync(stream, file.FileName, workplaceId.ToString());
             }
 
             // 4. Create Document record
@@ -57,8 +63,33 @@ namespace FileMatrix_Pabiran_.Services
                 CreatedByUserID = userId
             };
 
+            // Simple Query: Add the new document record to the database and save it to get its unique ID.
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
+
+            // 4.5 Backup to Google Drive (Backpack)
+            var workplace = await _context.Workplaces.FindAsync(workplaceId);
+            if (workplace != null && !string.IsNullOrEmpty(workplace.GoogleDriveRefreshToken))
+            {
+                try
+                {
+                    using (var backupStream = file.OpenReadStream())
+                    {
+                        var backupResult = await _googleDrive.UploadFileAsync(workplace, file.FileName, file.ContentType, backupStream);
+                        if (!string.IsNullOrEmpty(backupResult.FileId))
+                        {
+                            document.GoogleDriveFileID = backupResult.FileId;
+                            document.GoogleDriveLink = backupResult.WebViewLink;
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the whole upload
+                    System.Diagnostics.Debug.WriteLine($"Google Drive Backup Failed: {ex.Message}");
+                }
+            }
 
             // 5. Create DocumentVersion record
             var version = new DocumentVersion
@@ -66,7 +97,7 @@ namespace FileMatrix_Pabiran_.Services
                 DocumentID = document.DocumentID,
                 VersionNumber = 1.0m,
                 FileName = file.FileName,
-                FilePath = Path.Combine("uploads", workplaceId.ToString(), uniqueFileName).Replace("\\", "/"),
+                FilePath = secureUrl, // Store secure Cloudinary URL
                 FileSizeBytes = file.Length,
                 MimeType = file.ContentType,
                 UploadedByUserID = userId,
@@ -77,7 +108,7 @@ namespace FileMatrix_Pabiran_.Services
             _context.DocumentVersions.Add(version);
             await _context.SaveChangesAsync();
 
-            // Update document with current version ID
+            // Simple Query: Link the main document record to its newly created version.
             document.CurrentVersionID = version.VersionID;
             await _context.SaveChangesAsync();
 
@@ -98,33 +129,29 @@ namespace FileMatrix_Pabiran_.Services
             return document;
         }
 
+        /// <summary>
+        /// Orchestrates the 'Version Append': Saves a new physical file and 
+        /// pushes a new record to the version history timeline without 
+        /// affecting existing versions.
+        /// </summary>
         public async Task<DocumentVersion> UploadVersionAsync(int documentId, IFormFile file, string changeNote, int userId)
         {
+            // Simple Query: Find the document we are trying to add a new version to.
             var doc = await _context.Documents.FindAsync(documentId);
             if (doc == null) throw new ArgumentException("Document not found");
 
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is empty");
 
-            // 1. Ensure upload directory exists
-            var uploadsRoot = Path.Combine(_environment.WebRootPath, "uploads", doc.WorkplaceID.ToString());
-            if (!Directory.Exists(uploadsRoot))
+            // 1. Upload to Cloudinary
+            string secureUrl;
+            using (var stream = file.OpenReadStream())
             {
-                Directory.CreateDirectory(uploadsRoot);
-            }
-
-            // 2. Generate unique filename
-            var fileExtension = Path.GetExtension(file.FileName);
-            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(uploadsRoot, uniqueFileName);
-
-            // 3. Save physical file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
+                secureUrl = await _cloudinary.UploadAsync(stream, file.FileName, doc.WorkplaceID.ToString());
             }
 
             // 4. Determine next version number
+            // Simple Query: Find the currently active version number so we can figure out the next one (e.g., 2.0).
             var currentLatest = await _context.DocumentVersions
                 .Where(v => v.DocumentID == documentId)
                 .OrderByDescending(v => v.VersionNumber)
@@ -138,7 +165,7 @@ namespace FileMatrix_Pabiran_.Services
                 DocumentID = documentId,
                 VersionNumber = nextVersion,
                 FileName = file.FileName,
-                FilePath = Path.Combine("uploads", doc.WorkplaceID.ToString(), uniqueFileName).Replace("\\", "/"),
+                FilePath = secureUrl, // Store secure Cloudinary URL
                 FileSizeBytes = file.Length,
                 MimeType = file.ContentType,
                 UploadedByUserID = userId,
@@ -149,9 +176,31 @@ namespace FileMatrix_Pabiran_.Services
             _context.DocumentVersions.Add(version);
             await _context.SaveChangesAsync();
 
-            // 6. Update Document
+            // 6. Update Document and Backup to Google Drive
             doc.CurrentVersionID = version.VersionID;
             doc.UpdatedAt = DateTime.UtcNow;
+
+            var workplace = await _context.Workplaces.FindAsync(doc.WorkplaceID);
+            if (workplace != null && !string.IsNullOrEmpty(workplace.GoogleDriveRefreshToken))
+            {
+                try
+                {
+                    using (var backupStream = file.OpenReadStream())
+                    {
+                        var backupResult = await _googleDrive.UploadFileAsync(workplace, file.FileName, file.ContentType, backupStream);
+                        if (!string.IsNullOrEmpty(backupResult.FileId))
+                        {
+                            doc.GoogleDriveFileID = backupResult.FileId;
+                            doc.GoogleDriveLink = backupResult.WebViewLink;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Google Drive Backup Failed: {ex.Message}");
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             // 7. Log activity

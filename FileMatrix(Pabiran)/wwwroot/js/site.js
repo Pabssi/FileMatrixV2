@@ -1,11 +1,22 @@
-// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
+/**
+ * FileMatrix Global Client Logic (site.js)
+ * 
+ * RESPONSIBILITY: Orchestrates landing page interactivity, smooth navigation, 
+ * and handles global modal triggers (specifically the dynamic Authentication Modal).
+ */
 // Minimal interactivity for placeholder UI
 document.addEventListener('DOMContentLoaded', function () {
-    // Smooth scroll for anchor links — offset by navbar height to avoid overlap
-    var navOffset = 80; // fixed nav height + breathing room
+    // Landing page section IDs for scroll-spy and navigation
+    const sectionIds = ['features', 'benefits', 'how-it-works'];
+    const navLinks = {};
+    sectionIds.forEach(function (id) {
+        navLinks[id] = document.querySelectorAll('a[href="#' + id + '"]');
+    });
+
+    // NAVIGATION: The 'Smooth Anchor' pattern. 
+    // Prevents abrupt jumps by calculating navigation offsets, 
+    // taking the fixed header into account.
+    var navOffset = 80; // fixed nav header height
     document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
         anchor.addEventListener('click', function (e) {
             var href = this.getAttribute('href');
@@ -22,19 +33,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Scroll-spy: highlight the active landing nav link based on scroll position
-    var sectionIds = ['features', 'benefits', 'how-it-works'];
-    var navLinks = {};
-    sectionIds.forEach(function (id) {
-        // Collect all nav anchors pointing to this section (landing nav + footer)
-        document.querySelectorAll('a[href="#' + id + '"]').forEach(function (a) {
-            if (a.closest('.landing-nav')) {
-                navLinks[id] = navLinks[id] || [];
-                navLinks[id].push(a);
-            }
-        });
-    });
-
+    // SCROLL-SPY: The 'Active Observer' pattern. 
+    // Highlights the current landing page section in the navbar 
+    // based on the user's scroll position.
     function updateActiveNav() {
         var scrollPos = window.scrollY + navOffset + 40;
         var currentId = '';
@@ -76,7 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // If the page was loaded with ?auth=login or ?auth=register (or #login/#register), open modal
+    // ROUTING: The 'Hash-to-Modal' pattern. 
+    // Allows deep-linking directly into the Register or Login tabs 
+    // of the authentication modal (e.g., via ?auth=register).
     try {
         var urlParams = new URLSearchParams(window.location.search);
         var authParam = urlParams.get('auth');

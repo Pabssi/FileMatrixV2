@@ -12,6 +12,14 @@ using FileMatrix_Pabiran_.Models;
 namespace FileMatrix_Pabiran_.Controllers
 {
     // Note: project has Identity scaffolding under Areas/Identity; these actions provide a simple controller-backed flow
+    /// <summary>
+    /// AccountController: The Identity-DMS Bridge.
+    /// 
+    /// RESPONSIBILITY: Manages the authentication lifecycle (Login, Register, Logout) 
+    /// and synchronizes the ASP.NET Core Identity system with the DMS 'User' entity.
+    /// DESIGN: Supports 'Unified Login' (Username/Email) and 'Invite-First' onboarding 
+    /// where pending document shares are redeemed upon account creation.
+    /// </summary>
     public class AccountController : Controller
     {
         private readonly SignInManager<IdentityUser<int>> _signInManager;
@@ -39,6 +47,11 @@ namespace FileMatrix_Pabiran_.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        /// <summary>
+        /// Orchestrates the authentication flow. 
+        /// FALLBACK: Implements a multi-stage lookup (Identity -> DMS Email -> DMS Username) 
+        /// to ensure users can always log in with whatever identifier they remember.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
@@ -87,6 +100,7 @@ namespace FileMatrix_Pabiran_.Controllers
                         try
                         {
                             var emailLower = identifier.ToLowerInvariant();
+                            // Simple Query: Look up the user by their email address to see if they exist.
                             user = await _db.Users
                                 .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == emailLower);
                         }
@@ -95,6 +109,7 @@ namespace FileMatrix_Pabiran_.Controllers
                     else
                     {
                         // Look up our custom User from identity user's email
+                        // Simple Query: If we found them in the identity system, sync up with our local 'Users' table.
                         user = await _db.Users.FirstOrDefaultAsync(u => u.Email == identityUser.Email);
                     }
                 }
@@ -102,6 +117,7 @@ namespace FileMatrix_Pabiran_.Controllers
                 // If we still don't have a user, or it wasn't an email, try username
                 if (user == null && !string.IsNullOrEmpty(identifier))
                 {
+                    // Simple Query: If email didn't work, try looking them up by their Username instead.
                     user = await _db.Users.FirstOrDefaultAsync(u => u.Username == identifier);
                 }
                 if (user == null)
@@ -154,6 +170,9 @@ namespace FileMatrix_Pabiran_.Controllers
                 var result = await _signInManager.PasswordSignInAsync(identityUserForSignIn, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    // Update LastLogin for custom User model
+                    user.LastLogin = DateTime.UtcNow;
+                    await _db.SaveChangesAsync();
                     
                     try
                     {
@@ -208,7 +227,9 @@ namespace FileMatrix_Pabiran_.Controllers
                         defaultRedirect = Url.Action("Index", "SuperAdmin", new { area = "SuperAdmin" });
                     }
 
-                    // Redeem any pending document share invite
+                    // UNIFICATION: The 'Invite Redemption' pattern. 
+                    // Automatically grants document access if the user was invited by email 
+                    // before they had an account.
                     string? docShareRedirect = null;
                     if (Request.Cookies.TryGetValue("PendingDocInvite", out var pendingToken) && !string.IsNullOrEmpty(pendingToken))
                     {
@@ -290,6 +311,10 @@ namespace FileMatrix_Pabiran_.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        /// <summary>
+        /// Handles new user registration, including Identity record creation, 
+        /// DMS profile syncing, and email verification delivery.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -537,6 +562,10 @@ namespace FileMatrix_Pabiran_.Controllers
             return View("ConfirmEmail");
         }
 
+        /// <summary>
+        /// Context Switcher: Updates the user's 'LastWorkplaceID' cookie to change 
+        /// their active organizational context.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SwitchWorkplace(int id)

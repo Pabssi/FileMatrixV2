@@ -1,15 +1,26 @@
+@*
+    FileMatrix Asset Chronology (_VersionHistoryModal).
+    
+    RESPONSIBILITY: Visualizes the evolution of a document over time.
+    PATTERN: Uses a 'Timeline-First' design where versions are rendered 
+    as linked nodes on a temporal axis.
+    CAPABILITIES:
+    1. Download Specific: Accesses physical binary blobs for historical versions.
+    2. Restore Strategy: Allows promotes a past version to the 'Current' state, 
+       triggering a metadata swap in the DmsEntities layer.
+*@
 <!-- Version History Modal -->
 <div class="modal fade" id="versionHistoryModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content rounded-4 shadow border-0 overflow-hidden">
-            <div class="modal-header history-bg-gradient border-0 pb-4" style="background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: white !important;">
+            <div class="modal-header history-bg-gradient border-0 pb-4">
                 <div class="pt-2">
                     <h5 class="modal-title fw-bold" id="historyModalTitle">Version History</h5>
                     <div id="historyModalSubtitle" class="small opacity-75">Track and manage changes over time</div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 bg-light" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body p-4 bg-light version-modal-body">
                 @{
                     var membership = ViewBag.CurrentMembership as FileMatrix_Pabiran_.Models.WorkplaceMember;
                     var canEdit = membership?.RoleID <= 2;

@@ -1,0 +1,53 @@
+/* ============================================
+   SuperAdmin Provisioning — Admin UI
+   ============================================ */
+
+.provision-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.5rem;
+    padding: 3rem;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.btn-provision {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.85rem 2.5rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-provision:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -5px rgba(79, 70, 229, 0.4);
+    color: #ffffff;
+}
+
+.input-hint {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}

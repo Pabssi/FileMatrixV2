@@ -107,51 +107,6 @@
     </div>
 </div>
 
-<style>
-    .fw-extrabold { font-weight: 800; }
-    .ls-wide { letter-spacing: 0.05em; }
-    
-    .settings-icon-box {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        transition: all 0.3s ease;
-    }
-
-    .premium-settings-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0 !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .premium-settings-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 10px 10px -5px rgba(79, 70, 229, 0.04) !important;
-        border-color: #6366f1 !important;
-    }
-
-    .premium-settings-card:hover .settings-icon-box {
-        transform: scale(1.1);
-    }
-    
-    .placeholder-card {
-        background: #f8fafc;
-        border: 1px dashed #cbd5e1 !important;
-    }
-
-    .transition-all {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .bg-indigo-subtle { background-color: rgba(79, 70, 229, 0.08) !important; }
-    .text-indigo { color: #4f46e5 !important; }
-    .bg-warning-subtle { background-color: rgba(245, 158, 11, 0.08) !important; }
-    .text-warning { color: #f59e0b !important; }
-    .bg-primary-subtle { background-color: rgba(37, 99, 235, 0.08) !important; }
-    .text-primary { color: #2563eb !important; }
-    .bg-slate-subtle { background-color: #f1f5f9 !important; }
-    .text-slate { color: #64748b !important; }
-</style>
+@section Head {
+    <link rel="stylesheet" href="~/css/admin/settings.css" asp-append-version="true" />
+}

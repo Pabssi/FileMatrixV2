@@ -10,12 +10,22 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin")]
+    /// <summary>
+    /// AdminController: The Workplace Dashboard Hub.
+    /// 
+    /// RESPONSIBILITY: Aggregates high-level metrics (Storage, Members, Recent activity) 
+    /// for the current workplace and presents them to the administrator.
+    /// </summary>
     public class AdminController : BaseAdminController
     {
         public AdminController(FileMatrix_Pabiran_.Data.ApplicationDbContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Compiles the dashboard view model by aggregating document stats 
+        /// and resolving the latest version metadata for recent items.
+        /// </summary>
         [HttpGet("Dashboard")]
         public async Task<IActionResult> Index()
         {

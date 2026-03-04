@@ -8,12 +8,21 @@ using FileMatrix_Pabiran_.Areas.Admin.Models;
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    /// <summary>
+    /// UsersController: Workplace-Level Member Management.
+    /// 
+    /// RESPONSIBILITY: Manages the collection of users within the current workplace.
+    /// Handles role display and user activation/deactivation for the specific organization.
+    /// </summary>
     public class UsersController : BaseAdminController
     {
         public UsersController(FileMatrix_Pabiran_.Data.ApplicationDbContext context) : base(context)
         {
         }
 
+        /// <summary>
+        /// Lists all members of the current workplace, resolving their profiles and local roles.
+        /// </summary>
         public async Task<IActionResult> Index()
         {
             if (CurrentWorkplace == null) return RedirectToAction("Index", "Organizations", new { area = "" });
@@ -49,6 +58,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return View(vm);
         }
 
+        /// <summary>
+        /// Toggles the 'IsActive' status for a user, effectively enabling or disabling 
+        /// their access to this specific workplace.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> ToggleStatus(int userId)
         {

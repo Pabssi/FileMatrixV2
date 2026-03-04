@@ -3,6 +3,12 @@ using SendGrid.Helpers.Mail;
 
 namespace FileMatrix_Pabiran_.Services
 {
+    /// <summary>
+    /// EmailSenderService: The Communication Backbone.
+    /// 
+    /// RESPONSIBILITY: Orchestrates the delivery of all outbound system emails 
+    /// (Verification, Onboarding, Sharing) through the SendGrid API.
+    /// </summary>
     public class EmailSenderService
     {
         private readonly string _apiKey;
@@ -16,6 +22,10 @@ namespace FileMatrix_Pabiran_.Services
             _fromName = configuration["SendGrid:FromName"] ?? "FileMatrix Support";
         }
 
+        /// <summary>
+        /// Sends an email message using the configured SendGrid credentials. 
+        /// Both PlainText and Html content are sent as the same body for compatibility.
+        /// </summary>
         public async Task SendAsync(string to, string subject, string body)
         {
             if (string.IsNullOrEmpty(_apiKey))

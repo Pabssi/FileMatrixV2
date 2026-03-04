@@ -8,6 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FileMatrix_Pabiran_.Controllers
 {
+    /// <summary>
+    /// OrganizationsController: The Multi-Tenancy Engine.
+    /// 
+    /// RESPONSIBILITY: Manages the lifecycle of 'Workplaces' (Organizations) 
+    /// and the 'Join' workflow for invited members.
+    /// </summary>
     public class OrganizationsController : Controller
     {
         private readonly FileMatrix_Pabiran_.Data.ApplicationDbContext _db;
@@ -42,6 +48,10 @@ namespace FileMatrix_Pabiran_.Controllers
         [HttpGet]
         public IActionResult Create() => View(new FileMatrix_Pabiran_.Models.Workplace());
 
+        /// <summary>
+        /// Creates a new workplace and automatically assigns the creator as 
+        /// the primary Administrator (RoleID 1).
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(FileMatrix_Pabiran_.Models.Workplace model)
@@ -106,6 +116,11 @@ namespace FileMatrix_Pabiran_.Controllers
             return await ProcessJoin(token);
         }
 
+        /// <summary>
+        /// The 'Invitation Processor': Validates tokens, checks usage limits, 
+        /// enforces email restrictions, and handles role promotes/updates for 
+        /// existing members.
+        /// </summary>
         private async Task<IActionResult> ProcessJoin(string token)
         {
             var invitation = _db.WorkplaceInvitations

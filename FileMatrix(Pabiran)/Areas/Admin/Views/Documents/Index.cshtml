@@ -1,4 +1,13 @@
 @model FileMatrix_Pabiran_.Models.DocumentListViewModel
+@*
+    FileMatrix Document Hub (Index).
+    
+    RESPONSIBILITY: The primary dashboard for workplace asset management.
+    UI CAPABILITIES: 
+    1. View Modes: Persistent Grid/List toggle via LocalStorage.
+    2. Grouping: Real-time grouping of assets by chronological status (Today, Yesterday, etc.).
+    3. Action Orchestration: Central hub for all document lifecycle actions (Share, Archive, Versioning).
+*@
 
 @{
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
@@ -8,382 +17,7 @@
 }
 
 @section Head {
-    <style>
-        .docs-page-header { margin-bottom: 1rem; }
-        .docs-page-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: .25rem; letter-spacing: -0.025em; }
-        .docs-page-subtitle { color: #64748b; font-size: 0.95rem; margin: 0; font-weight: 500; }
-
-        /* Toolbar / Filters */
-        .docs-toolbar {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.25rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-
-        .search-group { position: relative; flex-grow: 1; min-width: 200px; }
-        .search-icon { position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-        .docs-search-input { 
-            width: 100%;
-            border-radius: 0.875rem; 
-            border: 1px solid #e2e8f0; 
-            font-size: .95rem; 
-            height: 3.25rem; 
-            padding-left: 3.75rem !important;
-            background-color: #f8fafc;
-            transition: all 0.2s;
-        }
-        .docs-search-input:focus { 
-            background-color: #fff;
-            border-color: #6366f1; 
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); 
-        }
-
-        .filter-select {
-            height: 3.25rem;
-            border-radius: 0.875rem;
-            border: 1px solid #e2e8f0;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #475569;
-            padding-right: 2.5rem;
-            width: 180px;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .view-toggle {
-            display: flex;
-            background: #f1f5f9;
-            padding: 0.4rem;
-            border-radius: 0.875rem;
-            gap: 0.25rem;
-        }
-
-        .view-toggle-btn {
-            width: 2.5rem;
-            height: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.625rem;
-            border: none;
-            background: transparent;
-            color: #64748b;
-            transition: all 0.2s;
-        }
-
-        .view-toggle-btn.active {
-            background: #ffffff;
-            color: #4f46e5;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Upload Button */
-        .docs-upload-btn {
-            border-radius: 0.875rem;
-            padding: 0 1.5rem;
-            height: 3.25rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: white !important;
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
-            transition: all 0.2s;
-        }
-        .docs-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 20px -3px rgba(79, 70, 229, 0.4); opacity: 0.95; }
-
-        /* Document Card */
-        .doc-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.5rem;
-            padding: 1.25rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .doc-card:hover { 
-            border-color: #cbd5e1; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transform: translateY(-4px); 
-        }
-
-        .doc-icon-container {
-            width: 64px;
-            height: 64px;
-            border-radius: 1rem;
-            background: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0.5rem auto 1.25rem;
-            color: #4f46e5;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f1f5f9;
-        }
-        .doc-icon-container.type-word { color: #2b579a; background: #eef2ff; }
-        .doc-icon-container.type-excel { color: #217346; background: #ecfdf5; }
-        .doc-icon-container.type-powerpoint { color: #d24726; background: #fff7ed; }
-        .doc-icon-container.type-pdf { color: #e11d48; background: #fff1f2; }
-        .doc-icon-container.type-image { color: #9333ea; background: #faf5ff; }
-        .doc-icon-container.type-video { color: #0891b2; background: #ecfeff; }
-
-
-        .doc-title { 
-            font-size: 1.125rem; 
-            font-weight: 800; 
-            color: #1e293b; 
-            margin-bottom: 0.75rem; 
-            text-align: left;
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-        }
-
-        .doc-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-bottom: 0.625rem;
-            font-weight: 500;
-        }
-        .doc-meta-item svg { width: 16px; height: 16px; color: #94a3b8; }
-
-        .doc-footer {
-            margin-top: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 1rem;
-        }
-
-        .doc-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        .doc-tag {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.75rem;
-            border-radius: 2rem;
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-
-        .doc-status-badge {
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0 0.85rem;
-            height: 1.75rem;
-            border-radius: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
-        }
-        .doc-status-badge.published { background: #dcfce7; color: #166534; }
-        .doc-status-badge.draft { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-        .doc-status-badge.archived { background: #fee2e2; color: #991b1b; }
-        
-        .doc-badges {
-            position: absolute;
-            top: 1.25rem;
-            left: 1.25rem;
-            display: flex;
-            gap: 0.5rem;
-            z-index: 10;
-        }
-        
-        .doc-status-badge.public-badge {
-            background: #e0e7ff; 
-            color: #3730a3;
-            border: 1px solid #c7d2fe;
-        }
-
-        /* Modal styling */
-        .modal-content { border-radius: 1.5rem; border: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; }
-        .modal-header { background: #f8fafc; border-bottom: 1px solid #f1f5f9; padding: 1.5rem 2rem; }
-        .modal-body { padding: 2rem; }
-        .form-label { font-weight: 700; color: #0f172a; font-size: 0.9rem; margin-bottom: 0.6rem; }
-        .form-control, .form-select { border-radius: 0.875rem; padding: 0.75rem 1rem; border-color: #e2e8f0; background-color: #f8fafc; font-weight: 500; }
-        .form-control:focus, .form-select:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); background-color: #fff; }
-
-        /* Actions Menu & Favorite Button */
-        .doc-card-actions {
-            position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
-            display: flex;
-            gap: 0.5rem;
-            z-index: 10;
-        }
-
-        .action-btn {
-            width: 2.25rem;
-            height: 2.25rem;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            transition: all 0.2s;
-            backdrop-filter: blur(4px);
-            cursor: pointer;
-        }
-        .action-btn:hover { background: #fff; color: #4f46e5; border-color: #6366f1; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .action-btn.is-favorite { color: #f59e0b; border-color: #fef3c7; background: #fffbeb; }
-        .action-btn.is-favorite svg { fill: #f59e0b; }
-        
-        /* Action Menu Icon Colors */
-        .dropdown-item svg { width: 1.125rem; height: 1.125rem; margin-right: 0.75rem; transition: transform 0.2s; }
-        .dropdown-item:hover svg { transform: scale(1.1); }
-        .icon-preview { color: #6366f1; }
-        .icon-history { color: #3b82f6; }
-        .icon-download { color: #10b981; }
-        .icon-share { color: #8b5cf6; }
-        .icon-draft { color: #f59e0b; }
-        .icon-restore { color: #06b6d4; }
-        .icon-archive { color: #f43f5e; }
-        .icon-delete { color: #ef4444; }
-        .icon-move { color: #8b5cf6; }
-
-        .dropdown-menu { border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 0.5rem; }
-        .dropdown-item { border-radius: 0.5rem; padding: 0.6rem 1rem; font-weight: 500; font-size: 0.9rem; color: #475569; display: flex; align-items: center; gap: 0.75rem; }
-        .dropdown-item:hover { background: #f8fafc; color: #0f172a; }
-        .dropdown-item.text-danger:hover { background: #fef2f2; }
-        .dropdown-item svg { width: 16px; height: 16px; }
-
-        .doc-card-link { position: absolute; inset: 0; z-index: 5; }
-
-        /* Date Grouping Headers */
-        .date-section-header {
-            margin-top: 2rem;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.4rem;
-            border-bottom: 2px solid #f1f5f9;
-            color: #0f172a;
-            font-size: 1.5rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            letter-spacing: -0.025em;
-        }
-        .date-section-header::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
-        }
-        #docs-container .col-12:first-child .date-section-header {
-            margin-top: 0;
-        }
-
-        /* List View Mode Styles */
-        .list-view-mode .col-md-6, 
-        .list-view-mode .col-lg-4, 
-        .list-view-mode .col-xl-3 { 
-            width: 100% !important; 
-            max-width: 100% !important; 
-            flex: 0 0 100% !important;
-        }
-
-        .list-view-mode .doc-card {
-            flex-direction: row;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            min-height: auto;
-            gap: 1.5rem;
-            text-align: left;
-        }
-
-        .list-view-mode .doc-badges {
-            position: static;
-            order: 5;
-            margin-left: auto;
-            align-items: center;
-        }
-
-        .list-view-mode .doc-icon-container {
-            width: 44px;
-            height: 44px;
-            margin: 0;
-            flex-shrink: 0;
-            box-shadow: none;
-            background: #f8fafc;
-        }
-
-        .list-view-mode .doc-icon-container svg {
-            width: 22px;
-            height: 22px;
-        }
-
-        .list-view-mode .doc-title {
-            margin: 0;
-            font-size: 1rem;
-            max-width: 300px;
-            flex-grow: 1;
-        }
-
-        .list-view-mode .doc-meta {
-            display: flex;
-            flex-direction: row;
-            gap: 2rem;
-            margin: 0;
-            flex-grow: 2;
-        }
-
-        .list-view-mode .doc-meta-item {
-            margin-bottom: 0;
-            white-space: nowrap;
-        }
-
-        .list-view-mode .doc-footer {
-            margin: 0;
-            border-top: none;
-            padding: 0;
-            gap: 1.5rem;
-            flex-shrink: 0;
-        }
-
-        .list-view-mode .doc-card-actions {
-            position: static;
-            order: 6;
-        }
-
-        @@media (max-width: 991px) {
-            .docs-toolbar form { flex-wrap: wrap; }
-            .search-group { min-width: 100%; order: -1; }
-            .filter-select { flex: 1; }
-        }
-
-        @@media (max-width: 768px) {
-            .list-view-mode .doc-meta { display: none; }
-            .list-view-mode .doc-footer { display: none; }
-        }
-
-    </style>
+    <link rel="stylesheet" href="~/css/admin/documents.css" asp-append-version="true" />
 }
 
 <div class="d-flex justify-content-between align-items-end docs-page-header reveal-on-scroll">
@@ -434,6 +68,9 @@
             <option value="Archived" selected="@(Model.StatusFilter == "Archived")">Archived</option>
         </select>
 
+        @* VIEW ORCHESTRATION: Grid/List Toggle. 
+           Uses client-side CSS class toggling (list-view-mode) to transform the 
+           entire document container without re-rendering HTML components. *@
         <div class="view-toggle">
             <button type="button" class="view-toggle-btn active" title="Grid View">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -483,6 +120,9 @@
             if (currentGroup != lastGroup)
             {
                 lastGroup = currentGroup;
+                @* CHRONOLOGICAL GROUPING: The 'Sticky Timeframe' pattern. 
+                   Splits the flat document list into visual sections based on 
+                   relative update dates to improve scannability. *@
                 <div class="col-12">
                     <h2 class="date-section-header">@currentGroup</h2>
                 </div>
@@ -540,9 +180,6 @@
                                         <li><a class="dropdown-item restore-doc" href="#" data-id="@doc.DocumentID">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-restore"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Restore
                                         </a></li>
-                                        <li><a class="dropdown-item text-danger delete-doc" href="#" data-id="@doc.DocumentID">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-delete"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
-                                        </a></li>
                                     }
                                     else
                                     {
@@ -562,6 +199,13 @@
                             <span class="doc-status-badge public-badge" title="Public Link Active">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1" style="width:12px;height:12px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                                 Public
+                            </span>
+                        }
+                        else if (!string.IsNullOrEmpty(doc.PublicShareToken) && doc.PublicAccessLevel == "Restricted")
+                        {
+                             <span class="doc-status-badge private-badge" title="Restricted Link (Invite Only)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-1" style="width:12px;height:12px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                Restricted
                             </span>
                         }
                     </div>
@@ -683,13 +327,13 @@
     </div>
 </div>
 
-<style>
-    .category-option { transition: all 0.2s; border: 2px solid #f1f5f9; cursor: pointer; }
-    .category-option:hover { border-color: #6366f1; background: #f8fafc; }
-    .category-option.selected { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
-</style>
 
 <!-- Upload Modal -->
+@* 
+   LIFECYCLE MODALS: FileMatrix uses a "Bootstrap Partial" pattern where 
+   complex operations like Uploading and Sharing are isolated into 
+   modal fragments to keep the main view clean and responsive.
+*@
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1267,7 +911,10 @@
             function loadShareDetails(docId) {
                 // Reset UI
                 $('#share-people-list').html('<div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm me-2"></div> Loading...</div>');
-                // Default state
+                // Default state: Restricted
+                $('#general-access-label').text('Restricted');
+                $('#public-role-wrapper').hide();
+                $('#general-access-desc').text('Only people with access can open with the link');
                 $('#general-access-bg').addClass('bg-light').removeClass('bg-primary-subtle text-primary bg-success-subtle text-success');
                 $('#general-access-icon').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>');
                 
@@ -1320,12 +967,8 @@
                     $('#general-access-bg').addClass('bg-light').removeClass('bg-primary-subtle text-primary');
                 }
                 
-                // Store link (prefer public link, but fallback to shared viewer link without token)
-                var link = data.publicLink;
-                if (!link) {
-                     link = window.location.origin + '@Url.Action("Document", "Shared", new { area = "", id = "DOCID" })'.replace("DOCID", currentShareDocId);
-                }
-                $('#share-copy-link-btn').data('link', link);
+                // Unified Link System: Always use the token-based link provided by the server
+                $('#share-copy-link-btn').data('link', data.publicLink);
             }
 
             function renderPersonItem(user, role, isRemovable, isPending) {

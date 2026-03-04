@@ -1,0 +1,288 @@
+/* ============================================
+   Workplace — Modern Setup Experience
+   Index and Create pages
+   ============================================ */
+
+.workspace-hero {
+    min-height: calc(100vh - 80px);
+    background: radial-gradient(circle at top left, #e0e7ff 0, #f9f5ff 30%, #fdf2ff 55%, #f9fafb 100%);
+    display: flex;
+    align-items: flex-start;
+}
+
+.workspace-logo-card {
+    width: 70px;
+    height: 70px;
+    border-radius: 22px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 18px 50px rgba(88, 28, 135, 0.35),
+        0 4px 12px rgba(30, 64, 175, 0.25);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.workspace-logo-inner {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4f46e5, #a855f7);
+}
+
+.workspace-brand {
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: linear-gradient(90deg, #4f46e5, #a855f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.workspace-greeting {
+    font-weight: 500;
+    color: #020617;
+}
+
+.workspace-greeting span {
+    color: #4f46e5;
+}
+
+.workspace-subtitle {
+    color: #6b7280;
+    font-size: 0.98rem;
+}
+
+/* Card & Form Shells */
+.workspace-card,
+.workspace-form-card {
+    background: #ffffff;
+    border-radius: 26px;
+    box-shadow:
+        0 22px 60px rgba(15, 23, 42, 0.14),
+        0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.workspace-card {
+    padding: 1.9rem 1.9rem 1.7rem;
+}
+
+.workspace-form-card {
+    padding: 2.2rem 2.2rem 2rem;
+}
+
+.workspace-card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+    color: #ffffff;
+}
+
+.workspace-card-icon-primary {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+}
+
+.workspace-card-icon-secondary {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+}
+
+.workspace-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.workspace-card-text {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 1.2rem;
+}
+
+.workspace-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.workspace-card-link-arrow {
+    font-size: 1.05rem;
+}
+
+.workspace-card-link:hover {
+    text-decoration: underline;
+}
+
+.workspace-card-separator {
+    margin: 1.4rem 0 1rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.workspace-card-benefits {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.workspace-card-benefits li+li {
+    margin-top: 0.35rem;
+}
+
+.workspace-check {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.7);
+    margin-right: 0.45rem;
+    position: relative;
+    top: 3px;
+}
+
+.workspace-check::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    width: 7px;
+    height: 11px;
+    border-right: 2px solid #10b981;
+    border-bottom: 2px solid #10b981;
+    transform: rotate(40deg);
+}
+
+.workspace-card-icon-glyph {
+    display: inline-flex;
+    gap: 3px;
+}
+
+.workspace-card-icon-bar {
+    width: 4px;
+    height: 16px;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.workspace-card-icon-glyph-users::before,
+.workspace-card-icon-glyph-users::after {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    margin: 0 1px;
+}
+
+/* Form Specifics */
+.workspace-back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    color: #4b5563;
+    text-decoration: none;
+    background: #f3f4f6;
+    font-size: 1.05rem;
+}
+
+.workspace-back-link:hover {
+    background: #e5e7eb;
+}
+
+.workspace-form-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.workspace-form-subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+}
+
+.workspace-input {
+    border-radius: 12px;
+    border-color: #e5e7eb;
+    padding: 0.8rem 0.9rem;
+}
+
+.workspace-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.25);
+}
+
+.workspace-type-tile {
+    width: 100%;
+    cursor: pointer;
+}
+
+.workspace-type-inner {
+    display: block;
+    padding: 0.8rem 0.9rem;
+    border-radius: 16px;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb;
+    text-align: left;
+    transition: all .18s ease;
+}
+
+.workspace-type-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #111827;
+}
+
+.workspace-type-desc {
+    display: block;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.workspace-type-tile input:checked+.workspace-type-inner {
+    border-color: #4f46e5;
+    background: #eef2ff;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.35);
+}
+
+.workspace-primary-btn {
+    margin-top: 0.3rem;
+    width: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #6366f1);
+    border: none;
+    padding: 0.8rem 1.2rem;
+    font-weight: 600;
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.45);
+}
+
+.workspace-primary-btn:hover,
+.workspace-primary-btn:focus {
+    background: linear-gradient(90deg, #4338ca, #4f46e5);
+}
+
+@media (max-width: 767.98px) {
+    .workspace-hero {
+        min-height: auto;
+    }
+
+    .workspace-card,
+    .workspace-form-card {
+        border-radius: 22px;
+    }
+}

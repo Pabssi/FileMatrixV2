@@ -1,0 +1,69 @@
+/* ============================================
+   Notifications — Admin UI
+   ============================================ */
+
+.fw-extrabold {
+    font-weight: 800;
+}
+
+.ls-wide {
+    letter-spacing: 0.05em;
+}
+
+.border-hover-indigo:hover {
+    border-color: #c7d2fe !important;
+}
+
+.custom-switch-indigo .form-check-input:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(79, 70, 229, 0.04);
+    color: #4f46e5;
+}
+
+.transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notif-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bg-light-indigo {
+    background-color: rgba(79, 70, 229, 0.03);
+}
+
+.notif-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #4f46e5;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 14px;
+    box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+}
+
+.bg-indigo-100 {
+    background-color: #e0e7ff;
+}
+
+.bg-slate-100 {
+    background-color: #f1f5f9;
+}
+
+.text-indigo-600 {
+    color: #4f46e5;
+}
+
+.text-slate-400 {
+    color: #94a3b8;
+}

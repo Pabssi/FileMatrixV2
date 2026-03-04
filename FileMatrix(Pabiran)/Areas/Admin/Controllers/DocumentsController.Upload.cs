@@ -14,8 +14,19 @@ using System.IO;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// DocumentsController.Upload: Content Ingestion & Organization.
+    /// 
+    /// RESPONSIBILITY: Handles the initial creation of document assets and 
+    /// hierarchical folders. 
+    /// DELEGATION: File persistence is handled by the <see cref="DocumentService"/>.
+    /// </summary>
     public partial class DocumentsController
     {
+        /// <summary>
+        /// Entry point for new document uploads. Enforces RBAC and delegates 
+        /// to DocumentService for physical storage.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(104857600)] // 100MB Limit
@@ -50,6 +61,9 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Creates a new virtual folder within the workplace hierarchy.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateFolder(string name, int? parentFolderId)

@@ -14,8 +14,19 @@ using System.IO;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// DocumentsController.Comments: The Document Feedback Loop.
+    /// 
+    /// RESPONSIBILITY: Manages user social interactions (Comments) on documents.
+    /// COMMENTS: Unlike standard assets, comments are linked to the global UserID 
+    /// but contextually displayed within the workplace document view.
+    /// </summary>
     public partial class DocumentsController
     {
+        /// <summary>
+        /// Adds a user comment to a specific document and returns the JSON-serialized comment data 
+        /// for immediate UI update.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> AddComment(int documentId, string text)
         {

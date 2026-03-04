@@ -1,0 +1,49 @@
+/* Admin Layout Styles */
+.admin-shell { background: #f3f4f6; overflow-x: hidden; }
+.admin-wrapper { min-height: 100vh; }
+.admin-sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 260px; flex: 0 0 260px; background: #ffffff; display: flex; flex-direction: column; z-index: 1000; overflow-y: auto; overflow-x: hidden; }
+.admin-sidebar-header { padding: 1.25rem 1.25rem 0.75rem; }
+.admin-logo-wrap { width: 40px; height: 40px; border-radius: 12px; background: #ffffff; box-shadow: 0 10px 25px rgba(15,23,42,0.18); display: flex; align-items: center; justify-content: center; }
+.admin-logo-img { width: 26px; height: 26px; object-fit: contain; }
+.admin-logo-text { letter-spacing: .02em; }
+.admin-nav { font-size: .92rem; }
+.admin-nav-link { display: flex; align-items: center; gap: .5rem; padding: .55rem .75rem; margin-bottom: .15rem; border-radius: .8rem; color: #4b5563; text-decoration: none; transition: background-color .15s ease, color .15s ease, box-shadow .15s ease; }
+.admin-nav-icon { width: 20px; height: 20px; opacity: 0.7; transition: opacity 0.15s ease; }
+.admin-nav-link.active .admin-nav-icon { opacity: 1; }
+.admin-nav-link:hover:not(.active) .admin-nav-icon { opacity: 0.9; color: #4f46e5; }
+.admin-nav-link.active { background: linear-gradient(90deg,#4f46e5,#6366f1); color: #ffffff; box-shadow: 0 12px 24px rgba(79,70,229,0.35); }
+.admin-nav-link:hover:not(.active) { background-color: #f3f4f6; color: #111827; }
+.sidebar-footer .avatar { width: 38px; height: 38px; background: linear-gradient(135deg,#4f46e5,#a855f7); color: #fff; font-weight: 600; font-size: .9rem; }
+.admin-signout-btn { border-radius: .7rem; background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; font-size: .85rem; }
+.admin-signout-btn:hover { background: #fee2e2; }
+.admin-topbar { position: sticky; top: 0; background: #ffffff; z-index: 999; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.admin-icon-btn { border-radius: .7rem; background: #f9fafb; border: 1px solid #e5e7eb; padding-inline: .55rem; }
+.admin-icon-btn:hover { background: #e5e7eb; }
+.admin-top-icon { width: 18px; height: 18px; color: #6b7280; transition: color 0.15s ease; }
+.admin-icon-btn:hover .admin-top-icon { color: #111827; }
+.admin-dot-badge { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 999px; background: #ef4444; box-shadow: 0 0 0 2px #ffffff; }
+.admin-main { margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+.admin-main-inner { flex: 1; background: radial-gradient(circle at top left, #e0e7ff 0, #f9fafb 45%, #e5e7eb 100%); }
+.admin-menu-toggle { display: none; position: fixed; top: 1rem; left: 1rem; z-index: 1001; background: #ffffff; border: 1px solid #e5e7eb; border-radius: .5rem; padding: .5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+.admin-menu-toggle-icon { width: 20px; height: 20px; display: flex; flex-direction: column; justify-content: space-around; }
+.admin-menu-toggle-icon span { width: 100%; height: 2px; background: #4b5563; border-radius: 2px; transition: all 0.3s ease; }
+
+/* Global Toast Styling */
+.toast-container { z-index: 2100; }
+.premium-toast { background: #ffffff !important; border: none !important; border-radius: 1rem !important; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important; padding: 0.5rem; }
+.premium-toast--success { border-left: 5px solid #10b981 !important; }
+.premium-toast--error { border-left: 5px solid #ef4444 !important; }
+
+@media (max-width: 991.98px) {
+    .admin-menu-toggle { display: block; }
+    .admin-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; width: 260px; }
+    .admin-sidebar.mobile-open { transform: translateX(0); }
+    .admin-main { margin-left: 0; }
+    .admin-sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 999; }
+    .admin-sidebar-overlay.active { display: block; }
+}
+
+@media (max-width: 575.98px) {
+    .admin-sidebar { width: 100%; max-width: 280px; }
+    .admin-topbar { padding-left: 3.5rem; }
+}

@@ -5,41 +5,7 @@
 
 @section Head {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .superadmin-header { margin-bottom: 3rem; }
-        .superadmin-header h1 { font-size: 2.25rem; font-weight: 800; color: #0f172a; letter-spacing: -0.025em; margin-bottom: .5rem; }
-        .superadmin-header p { color: #64748b; font-size: 1rem; margin: 0; font-weight: 500; }
-
-        .stat-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.25rem;
-            padding: 1.75rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card:hover { border-color: #cbd5e1; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); transform: translateY(-4px); }
-        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
-        .stat-icon svg { width: 24px; height: 24px; }
-        .stat-label { font-size: .8125rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5rem; }
-        .stat-value { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: .75rem; letter-spacing: -0.02em; }
-        .stat-desc { font-size: .875rem; color: #64748b; font-weight: 500; }
-
-        .content-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.25rem;
-            padding: 2rem;
-            height: 100%;
-        }
-
-        .content-card-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 1.75rem; }
-    </style>
+    <link rel="stylesheet" href="~/css/superadmin/analytics.css" asp-append-version="true" />
 }
 
 <div class="superadmin-header reveal-on-scroll">
@@ -109,7 +75,7 @@
             <div class="mt-4 pt-3 border-top">
                 <div class="small text-muted mb-2">Primary Segment: <span class="fw-bold text-dark">Active Workspaces</span></div>
                 <div class="progress" style="height: 6px; border-radius: 99px;">
-                    <div class="progress-bar" style="width: 75%; background: #4f46e5; border-radius: 99px;"></div>
+                    <div class="progress-bar" style="width: @(ViewBag.RetentionPercentage ?? "0")%; background: #4f46e5; border-radius: 99px;"></div>
                 </div>
             </div>
         </div>
@@ -125,7 +91,7 @@
                 data: {
                     labels: @Html.Raw(ViewBag.Analytics_StorageLabels),
                     datasets: [{
-                        label: 'Total Storage (TB)',
+                        label: 'Total Storage (MB)',
                         data: @Html.Raw(ViewBag.Analytics_StorageData),
                         borderColor: '#4f46e5',
                         backgroundColor: 'rgba(79, 70, 229, 0.05)',

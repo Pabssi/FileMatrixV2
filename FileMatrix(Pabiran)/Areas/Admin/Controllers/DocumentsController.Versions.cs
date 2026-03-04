@@ -14,22 +14,36 @@ using System.IO;
 
 namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// DocumentsController.Versions: The Time-Machine Engine.
+    /// 
+    /// RESPONSIBILITY: Manages the historical states of a document. 
+    /// DESIGN: Implements an immutable versioning pattern where every change 
+    /// or "restoration" creates a new version record while preserving the old ones.
+    /// </summary>
     public partial class DocumentsController
     {
+        /// <summary>
+        /// Retrieves the complete historical timeline for a document including 
+        /// who uploaded which version and when.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> VersionHistory(int id)
         {
             if (CurrentWorkplace == null || CurrentMembership == null) return Unauthorized();
 
+            // Simple Query: Find the specific document we want to see the version history for.
             var doc = await _context.Documents.FindAsync(id);
             if (doc == null || doc.WorkplaceID != CurrentWorkplace.WorkplaceID) return NotFound();
 
+            // Simple Query: Get all older versions of this file from the database, newest first.
             var versions = await _context.DocumentVersions
                 .Where(v => v.DocumentID == id)
                 .OrderByDescending(v => v.VersionNumber)
                 .ToListAsync();
 
             var uploaderIds = versions.Select(v => v.UploadedByUserID).Distinct().ToList();
+            // Simple Query: Look up the names of every person who uploaded a version of this file.
             var uploaders = await _context.Users
                 .Where(u => uploaderIds.Contains(u.UserID))
                 .ToDictionaryAsync(u => u.UserID, u => u.DisplayName ?? u.Username ?? "Unknown");
@@ -49,6 +63,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return Json(new { success = true, versions = result });
         }
 
+        /// <summary>
+        /// Appends a new file version to the document. Delegates physical storage 
+        /// to <see cref="DocumentService"/>.
+        /// </summary>
         [HttpPost]
         [RequestSizeLimit(104857600)] // 100MB Limit
         public async Task<IActionResult> UploadVersion(int documentId, IFormFile file, string changeNote)
@@ -67,6 +85,10 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             }
         }
 
+        /// <summary>
+        /// Performs a "Smart Restore" by creating a NEW version that copies the 
+        /// state of an old version, ensuring the audit trail remains linear.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> RestoreVersion(int versionId)
         {
