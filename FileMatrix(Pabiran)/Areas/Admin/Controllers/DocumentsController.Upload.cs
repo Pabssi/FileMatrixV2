@@ -55,7 +55,16 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Upload failed: {ex.Message}";
+                var detailedError = ex.Message;
+                if (ex.InnerException != null)
+                {
+                    detailedError += " -> " + ex.InnerException.Message;
+                    if (ex.InnerException.InnerException != null)
+                    {
+                        detailedError += " -> " + ex.InnerException.InnerException.Message;
+                    }
+                }
+                TempData["ErrorMessage"] = $"Upload failed: {detailedError}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -97,6 +106,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 EntityType = "Folder",
                 EntityID = folder.FolderID,
                 UserID = CurrentMembership.UserID,
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
                 PerformedAt = DateTime.UtcNow,
                 Details = $"Created folder: {folder.Name}"
             };

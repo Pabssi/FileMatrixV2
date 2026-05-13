@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FileMatrix_Pabiran_.Models
 {
@@ -151,6 +152,7 @@ namespace FileMatrix_Pabiran_.Models
         public decimal VersionNumber { get; set; }
         public string? FileName { get; set; }
         public string? FilePath { get; set; }
+        public string? ExternalPublicID { get; set; }
         public long FileSizeBytes { get; set; }
         public string? MimeType { get; set; }
         public int? UploadedByUserID { get; set; }
@@ -158,6 +160,7 @@ namespace FileMatrix_Pabiran_.Models
         public string? ChangeNote { get; set; }
         public int? RestoredFromID { get; set; }
         public virtual Document? Document { get; set; }
+        public virtual DocumentVersion? RestoredFrom { get; set; }
     }
 
     /// <summary>
@@ -178,7 +181,7 @@ namespace FileMatrix_Pabiran_.Models
     public class AuditLog
     {
         public long LogID { get; set; }
-        public int WorkplaceID { get; set; }
+        public int? WorkplaceID { get; set; }
         public string? Action { get; set; }
         public string? EntityType { get; set; }
         public int EntityID { get; set; }

@@ -60,7 +60,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                     if (memberships.Any())
                     {
                         // Check for LastWorkplaceID cookie
-                        if (Request.Cookies.TryGetValue("LastWorkplaceID", out string lastWpIdStr) && int.TryParse(lastWpIdStr, out int lastWpId))
+                        if (Request.Cookies.TryGetValue("LastWorkplaceID", out string? lastWpIdStr) && int.TryParse(lastWpIdStr, out int lastWpId))
                         {
                             var preferred = memberships.FirstOrDefault(m => m.WorkplaceID == lastWpId);
                             if (preferred != null)

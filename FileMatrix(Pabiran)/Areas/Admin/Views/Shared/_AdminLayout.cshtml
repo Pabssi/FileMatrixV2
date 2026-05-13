@@ -127,7 +127,7 @@
             <div class="sidebar-footer mt-auto p-3">
                 <div class="d-flex align-items-center mb-2">
                     <div class="avatar rounded-3 d-inline-flex align-items-center justify-content-center me-2">
-                        @(User.Identity?.Name?.FirstOrDefault() ?? 'A')
+                        @(!string.IsNullOrEmpty(User.Identity?.Name) ? User.Identity.Name.FirstOrDefault() : 'A')
                     </div>
                     <div class="flex-grow-1">
                         <div class="fw-semibold small text-truncate">@User.Identity?.Name</div>
@@ -252,6 +252,9 @@
                 }
                 @if (TempData["ErrorMessage"] != null) {
                     <text>showToast('@Html.Raw(TempData["ErrorMessage"])', 'error');</text>
+                }
+                @if (TempData["InfoMessage"] != null) {
+                    <text>showToast('@Html.Raw(TempData["InfoMessage"])', 'success');</text>
                 }
             });
         })();

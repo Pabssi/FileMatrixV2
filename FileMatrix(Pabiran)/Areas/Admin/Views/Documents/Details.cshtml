@@ -18,6 +18,18 @@
 
 @section Head {
     <link rel="stylesheet" href="~/css/admin/document-details.css" asp-append-version="true" />
+    <style>
+        /* Sharing Modal Extensions */
+        .hover-bg-light:hover { background-color: #f8fafc; }
+        .transition-all { transition: all 0.2s ease-in-out; }
+        .custom-dropdown-toggle::after { display: none; }
+        .people-avatar {
+            width: 36px; height: 36px; 
+            background: #4f46e5; color: white;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; font-weight: bold; font-size: 0.85rem;
+        }
+    </style>
 }
 
 <div class="details-container">
@@ -150,8 +162,9 @@
                 }
                 else
                 {
-                    // Microsoft Office Online Viewer requires a publicly accessible URL
-                    var publicUrl = Url.Action("ViewFile", "Documents", new { area = "Admin", id = Model.Document.DocumentID, token = activeToken }, Context.Request.Scheme);
+                    // Microsoft Office Online Viewer requires a publicly accessible URL.
+                    // We use the pre-signed direct Cloudinary URL if available, fallback to the ViewFile proxy.
+                    var publicUrl = Model.Document.SignedUrl ?? Url.Action("ViewFile", "Documents", new { area = "Admin", id = Model.Document.DocumentID, token = activeToken }, Context.Request.Scheme);
                     var officeViewerUrl = $"https://view.officeapps.live.com/op/embed.aspx?src={System.Net.WebUtility.UrlEncode(publicUrl)}&wdPrint=0&wdEmbed=1";
                     
                     <div class="h-100 d-flex flex-column position-relative" style="overflow: hidden; background: #f3f2f1;">
@@ -266,70 +279,75 @@
     </div>
 </div>
 
-<!-- Share Warning Modal -->
-<div class="modal fade" id="shareWarningModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow border-0">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark">Share Document</h5>
+<!-- Share Modal (Google Docs Style) -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 shadow border-0" style="overflow:hidden;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold text-dark" style="font-size: 1.25rem;">Share "@Model.Document.Title"</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body py-4">
-                <!-- Loading State -->
-                <div id="share-loading-section" style="display: none;">
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="text-muted mt-3 mb-0">Checking share status...</p>
+            <div class="modal-body pt-3 pb-4 px-4">
+                <!-- Add People Section -->
+                <div class="mb-4">
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden border">
+                        <input type="text" class="form-control border-0 bg-light py-3 px-3" id="share-email-input" placeholder="Add people and groups">
+                        <select class="form-select border-0 bg-light text-muted fw-bold" style="max-width: 110px;" id="share-role-input">
+                            <option value="Viewer" selected>Viewer</option>
+                            <option value="Editor">Editor</option>
+                        </select>
+                        <button class="btn btn-primary fw-bold px-4" id="share-invite-btn">Send</button>
                     </div>
                 </div>
 
-                <!-- Warning Section (First time sharing) -->
-                <div class="d-flex align-items-center gap-3 mb-3" id="share-warning-section" style="display: none;">
-                    <div class="p-3 bg-warning-subtle text-warning rounded-circle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-1">Public Access Link</h6>
-                        <p class="text-muted small mb-0">This link will allow anyone to view this document without logging in. Make sure you want to share this publicly.</p>
+                <!-- People List -->
+                <h6 class="fw-bold text-muted small mb-3">People with access</h6>
+                <div class="d-flex flex-column gap-3 mb-4" id="share-people-list" style="max-height: 200px; overflow-y: auto;">
+                    <!-- Loading State -->
+                    <div class="text-center py-3 text-muted">
+                        <div class="spinner-border spinner-border-sm me-2"></div> Loading...
                     </div>
                 </div>
-                
-                <!-- Link Display Section (When link exists) -->
-                <div id="share-link-section" style="display: none;">
-                    <div class="alert alert-success border-0 mb-3" role="alert">
-                        <div class="d-flex align-items-center gap-2">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            <strong>Public sharing is enabled</strong>
+
+                <!-- General Access -->
+                <h6 class="fw-bold text-muted small mb-3">General access</h6>
+                <div class="d-flex align-items-center justify-content-between p-2 rounded-3 hover-bg-light transition-all">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle bg-light text-muted transition-all" id="general-access-bg" style="width: 40px; height: 40px; min-width: 40px;">
+                            <svg id="general-access-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <div class="dropdown">
+                                <button class="btn btn-link p-0 fw-bold shadow-none text-dark d-flex align-items-center gap-2 dropdown-toggle custom-dropdown-toggle" type="button" id="general-access-dropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.95rem; text-decoration: none;">
+                                    <span id="general-access-label">Restricted</span>
+                                </button>
+                                <ul class="dropdown-menu border-0 shadow-lg p-2 rounded-3" aria-labelledby="general-access-dropdown" style="min-width: 200px;">
+                                    <li><a class="dropdown-item rounded-2 py-2 access-opt" href="#" data-val="Restricted">Restricted</a></li>
+                                    <li><a class="dropdown-item rounded-2 py-2 access-opt" href="#" data-val="Public">Anyone with the link</a></li>
+                                </ul>
+                            </div>
+                            <div class="text-muted small" id="general-access-desc" style="font-size: 0.75rem; opacity: 0.8;">Only people with access can open with the link</div>
                         </div>
                     </div>
-                    <label class="form-label fw-bold small text-muted">PUBLIC SHARE LINK</label>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="share-url-input" readonly style="font-size: 0.875rem; font-family: monospace; background: #f8fafc; border-radius: 0.5rem 0 0 0.5rem;">
-                        <button class="btn btn-primary" type="button" id="copy-link-btn" style="border-radius: 0 0.5rem 0.5rem 0;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            Copy
-                        </button>
+                    <div id="public-role-wrapper" style="display:none;">
+                       <div class="dropdown">
+                            <button class="btn btn-link p-0 fw-bold shadow-none text-primary d-flex align-items-center gap-2 dropdown-toggle custom-dropdown-toggle" type="button" id="public-role-dropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.95rem; text-decoration: none;">
+                                <span id="public-role-label">Viewer</span>
+                            </button>
+                            <ul class="dropdown-menu border-0 shadow-lg p-2 rounded-3 dropdown-menu-end" aria-labelledby="public-role-dropdown">
+                                <li><a class="dropdown-item rounded-2 py-2 role-opt" href="#" data-val="Viewer">Viewer</a></li>
+                                <li><a class="dropdown-item rounded-2 py-2 role-opt" href="#" data-val="Editor">Editor</a></li>
+                            </ul>
+                       </div>
                     </div>
-                    <p class="text-muted small mb-0">Anyone with this link can view the document.</p>
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light fw-bold" style="border-radius: 0.75rem;" data-bs-dismiss="modal">Close</button>
-                @if (canEditDoc)
-                {
-                    <button type="button" class="btn btn-primary fw-bold" style="border-radius: 0.75rem;" id="confirm-share-btn">Generate Link</button>
-                    <button type="button" class="btn btn-outline-danger fw-bold" style="border-radius: 0.75rem; display: none;" id="revoke-share-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        Disable Sharing
-                    </button>
-                    <div id="revoke-confirm-area" style="display:none; align-items:center; gap: 8px;">
-                         <span class="text-danger fw-bold small me-2">Stop sharing?</span>
-                         <button type="button" class="btn btn-danger fw-bold btn-sm" style="border-radius: 0.75rem; padding: 0.4rem 1rem;" id="confirm-revoke-btn">Yes, Disable</button>
-                         <button type="button" class="btn btn-light fw-bold btn-sm" style="border-radius: 0.75rem; padding: 0.4rem 1rem;" id="cancel-revoke-btn">Cancel</button>
-                    </div>
-                }
+            <div class="modal-footer border-top pt-3 px-4 pb-4 justify-content-between">
+                <button type="button" class="btn btn-outline-primary rounded-pill fw-bold px-4 d-flex align-items-center gap-2" id="share-copy-link-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <span id="copy-link-text">Copy link</span>
+                </button>
+                <button type="button" class="btn btn-primary rounded-pill fw-bold px-4" data-bs-dismiss="modal">Done</button>
             </div>
         </div>
     </div>
@@ -439,148 +457,110 @@
                 </text>
             }
 
-            // When share button is clicked, check status first
-            $('#share-btn, .share-doc').click(function() {
-                pendingShareId = $(this).data('id');
-                $('#shareWarningModal').modal('show');
-                
-                // Show loading state
-                $('#share-loading-section').show();
-                $('#share-warning-section').hide();
-                $('#share-link-section').hide();
-                $('#confirm-share-btn').hide();
-                $('#revoke-share-btn').hide();
-                
-                // Check if share link already exists
-                $.get('@Url.Action("GetShareStatus")', { id: pendingShareId }, function(res) {
-                    $('#share-loading-section').hide();
-                    
+            // Share Document Logic (Unified)
+            var currentShareDocId = @Model.Document.DocumentID;
+
+            $('#share-btn').click(function(e) {
+                e.preventDefault();
+                $('#shareModal').modal('show');
+                loadShareDetails(currentShareDocId);
+            });
+
+            function loadShareDetails(docId) {
+                $('#share-people-list').html('<div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm me-2"></div> Loading...</div>');
+                $.get('@Url.Action("GetShareStatus")', { id: docId }, function(res) {
                     if (res.success) {
-                        if (res.hasToken) {
-                            // Link exists - show it directly
-                            showLinkSection(res.shareUrl);
-                        } else {
-                            // No link - show warning for first time
-                            showWarningSection();
-                        }
+                        renderShareUI(res);
                     } else {
-                        alert('Failed to check share status');
-                        $('#shareWarningModal').modal('hide');
+                        $('#share-people-list').html('<div class="text-center text-danger py-2">Failed to load details</div>');
                     }
                 });
-            });
-
-            // Generate new share link
-            $('#confirm-share-btn').click(function() {
-                if (!pendingShareId) return;
-                var btn = $(this);
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Generating...');
-
-                $.get('@Url.Action("Share")', { id: pendingShareId }, function(res) {
-                    if (res.success) {
-                        // If it's an office doc, reload to show viewer immediately
-                        @if (Model.Document.IsOfficeDocument) {
-                            <text>location.reload();</text>
-                        } else {
-                            <text>showLinkSection(res.shareUrl);</text>
-                        }
-                    } else {
-                        btn.prop('disabled', false).text('Generate Link');
-                        alert(res.message || 'Failed to generate share link. Please try again.');
-                    }
-                }).fail(function(xhr) {
-                    btn.prop('disabled', false).text('Generate Link');
-                    if (xhr.status === 403) {
-                        alert('You do not have permission to share this document.');
-                        $('#shareWarningModal').modal('hide');
-                    } else {
-                        alert('An error occurred. Please try again.');
-                    }
-                });
-            });
-            
-            // Revoke/disable sharing
-            $('#revoke-share-btn').click(function() {
-                $(this).hide();
-                $('#revoke-confirm-area').css('display', 'flex');
-            });
-
-            $('#cancel-revoke-btn').click(function() {
-                $('#revoke-confirm-area').hide();
-                $('#revoke-share-btn').show();
-            });
-
-            $('#confirm-revoke-btn').click(function() {
-                if (!pendingShareId) return;
-                
-                var btn = $(this);
-                var originalText = btn.text();
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-                $('#cancel-revoke-btn').hide();
-                
-                $.post('@Url.Action("RevokeShare")', { id: pendingShareId }, function(res) {
-                    if (res.success) {
-                        // Reset to warning state
-                        showWarningSection();
-                        // Reset UI for next time
-                        $('#revoke-confirm-area').hide();
-                        $('#cancel-revoke-btn').show();
-                        btn.prop('disabled', false).text(originalText);
-                    } else {
-                        btn.prop('disabled', false).text(originalText);
-                        $('#cancel-revoke-btn').show();
-                        alert('Failed to disable sharing. Please try again.');
-                    }
-                });
-            });
-            
-            function showWarningSection() {
-                $('#share-warning-section').show();
-                $('#share-link-section').hide();
-                $('#confirm-share-btn').show().prop('disabled', false).text('Generate Link');
-                $('#revoke-share-btn').hide();
-                $('#revoke-confirm-area').hide();
             }
-            
-            function showLinkSection(shareUrl) {
-                $('#share-warning-section').hide();
-                $('#share-link-section').show();
-                $('#share-url-input').val(shareUrl);
-                $('#confirm-share-btn').hide();
-                $('#revoke-share-btn').show().prop('disabled', false).html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Disable Sharing');
-                $('#revoke-confirm-area').hide();
-            }
-            
-            // Copy link button with fallback for non-HTTPS
-            $('#copy-link-btn').click(function() {
-                var input = document.getElementById('share-url-input');
-                var btn = $(this);
-                var originalHtml = btn.html();
-                
-                // Try modern clipboard API first
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(input.value).then(function() {
-                        btn.html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Copied!');
-                        setTimeout(function() { btn.html(originalHtml); }, 2000);
-                    }).catch(function() {
-                        fallbackCopy();
-                    });
+
+            function renderShareUI(data) {
+                var peopleListHtml = '';
+                if (data.owner) peopleListHtml += renderPersonItem(data.owner, 'Owner', false);
+                if (data.permissions) data.permissions.forEach(p => peopleListHtml += renderPersonItem(p, p.role, true, false));
+                if (data.pendingInvites) data.pendingInvites.forEach(i => peopleListHtml += renderPersonItem(i, i.role, false, true));
+                $('#share-people-list').html(peopleListHtml);
+
+                if (data.isPublic) {
+                    $('#general-access-label').text('Anyone with the link');
+                    $('#public-role-label').text(data.publicAccessLevel);
+                    $('#public-role-wrapper').show();
+                    $('#general-access-desc').text('Anyone with the link can ' + data.publicAccessLevel.toLowerCase());
+                    $('#general-access-icon').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>');
+                    $('#general-access-bg').removeClass('bg-light').addClass('bg-primary-subtle text-primary');
                 } else {
-                    fallbackCopy();
+                    $('#general-access-label').text('Restricted');
+                    $('#public-role-wrapper').hide();
+                    $('#general-access-desc').text('Only people with access can open with the link');
+                    $('#general-access-icon').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>');
+                    $('#general-access-bg').addClass('bg-light').removeClass('bg-primary-subtle text-primary');
                 }
-                
-                function fallbackCopy() {
-                    // Fallback for non-HTTPS or older browsers
-                    input.select();
-                    input.setSelectionRange(0, 99999); // For mobile devices
-                    try {
-                        document.execCommand('copy');
-                        btn.html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Copied!');
-                        setTimeout(function() { btn.html(originalHtml); }, 2000);
-                    } catch (err) {
-                        alert('Failed to copy. Please manually select and copy the link.');
-                    }
+                $('#share-copy-link-btn').data('link', data.publicLink);
+            }
+
+            function renderPersonItem(user, role, isRemovable, isPending) {
+                var name = user.userDisplayName || user.email || '?';
+                var initial = name.charAt(0).toUpperCase();
+                var email = user.email || '';
+                var removeBtn = isRemovable ? `<button class="btn btn-sm btn-link text-muted p-0 remove-perm-btn" data-id="${user.userID}" title="Remove access">×</button>` : '';
+                return `<div class="d-flex align-items-center justify-content-between py-1">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="people-avatar">${initial}</div>
+                                <div><div class="fw-bold small">${name}${isPending?' (Pending)':''}</div><div class="text-muted" style="font-size:0.7rem;">${email}</div></div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3"><span class="text-muted small fw-bold">${role}</span>${removeBtn}</div>
+                        </div>`;
+            }
+
+            $(document).on('click', '.access-opt', function(e) {
+                e.preventDefault();
+                var val = $(this).data('val');
+                updatePublicAccess(val === 'Public', 'Viewer');
+            });
+
+            $(document).on('click', '.role-opt', function(e) {
+                e.preventDefault();
+                updatePublicAccess(true, $(this).data('val'));
+            });
+
+            function updatePublicAccess(enabled, level) {
+                $.post('@Url.Action("UpdatePublicAccess")', { id: currentShareDocId, enabled: enabled, level: level }, function(res) {
+                    if (res.success) loadShareDetails(currentShareDocId);
+                    else alert('Failed to update access.');
+                });
+            }
+
+            $('#share-invite-btn').click(function() {
+                var email = $('#share-email-input').val();
+                var role = $('#share-role-input').val();
+                if (!email) return;
+                var btn = $(this); btn.prop('disabled', true).text('...');
+                $.post('@Url.Action("AddUserPermission")', { id: currentShareDocId, email: email, role: role }, function(res) {
+                    btn.prop('disabled', false).text('Send');
+                    if (res.success) { $('#share-email-input').val(''); loadShareDetails(currentShareDocId); }
+                    else alert(res.message);
+                });
+            });
+
+            $(document).on('click', '.remove-perm-btn', function() {
+                var userId = $(this).data('id');
+                if (confirm('Remove access?')) {
+                    $.post('@Url.Action("RemoveUserPermission")', { id: currentShareDocId, userId: userId }, function(res) {
+                        if (res.success) loadShareDetails(currentShareDocId);
+                    });
                 }
+            });
+
+            $('#share-copy-link-btn').click(function() {
+                var link = $(this).data('link');
+                var textSpan = $('#copy-link-text');
+                navigator.clipboard.writeText(link).then(function() {
+                    textSpan.text('Link copied!');
+                    setTimeout(() => textSpan.text('Copy link'), 2000);
+                });
             });
 
             // Version History timeline

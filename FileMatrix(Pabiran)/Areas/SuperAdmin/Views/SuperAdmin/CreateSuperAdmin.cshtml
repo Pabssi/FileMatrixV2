@@ -1,0 +1,40 @@
+@model CreateSuperAdminViewModel
+@{
+    Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Invite Super Administrator";
+}
+
+<div class="superadmin-header reveal-on-scroll">
+    <h1>Invite Super Admin</h1>
+    <p>Create a new platform Super Administrator and email them a link to set their password.</p>
+</div>
+
+<div class="user-table-card reveal-on-scroll p-4" style="max-width: 560px;">
+    <form asp-action="CreateSuperAdmin" method="post" id="fmInviteSuperAdminForm" class="needs-validation">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label fw-semibold"></label>
+            <input asp-for="Email" class="form-control" type="email" autocomplete="off" required placeholder="name@organization.com" />
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DisplayName" class="form-label fw-semibold"></label>
+            <input asp-for="DisplayName" class="form-control" autocomplete="off" placeholder="Shown in the invitation email" />
+            <span asp-validation-for="DisplayName" class="text-danger small"></span>
+        </div>
+
+        <input asp-for="ActionConfirmationPin" type="hidden" />
+        <span asp-validation-for="ActionConfirmationPin" class="text-danger small d-block mb-3"></span>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold" data-fm-superadmin-confirm-invite data-fm-superadmin-form="#fmInviteSuperAdminForm">Send invite</button>
+            <a asp-action="Users" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

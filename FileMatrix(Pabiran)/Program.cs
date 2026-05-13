@@ -20,7 +20,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Use default Identity with int keys to match the existing database
-builder.Services.AddDefaultIdentity<IdentityUser<int>>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<IdentityUser<int>>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    // Lockout: lock account for 10 minutes after 5 consecutive failed password attempts
+    options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(10);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers      = true;
+})
     .AddRoles<IdentityRole<int>>() // Add roles support if needed
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
@@ -30,6 +37,23 @@ builder.Services.AddScoped<FileMatrix_Pabiran_.Services.CloudinaryService>();
 builder.Services.AddScoped<FileMatrix_Pabiran_.Services.GoogleDriveService>();
 builder.Services.Configure<FileMatrix_Pabiran_.Models.CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddHostedService<FileMatrix_Pabiran_.Services.RetentionWorker>();
+
+// Session: used for staged sign-in when both email 2FA and app MFA are enabled (password → email code → TOTP).
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+});
+
+// Configure Identity token lifespan (e.g. for Forgot Password)
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(2);
+});
 
 // Configure Identity to redirect to the landing page for unauthorized requests
 builder.Services.ConfigureApplicationCookie(options =>
@@ -54,6 +78,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -103,6 +129,26 @@ using (var scope = app.Services.CreateScope())
             db.Database.ExecuteSqlRaw("IF COL_LENGTH('Workplaces','GoogleBackupFolderID') IS NULL ALTER TABLE [Workplaces] ADD [GoogleBackupFolderID] NVARCHAR(100) NULL;");
             db.Database.ExecuteSqlRaw("IF COL_LENGTH('Documents','GoogleDriveFileID') IS NULL ALTER TABLE [Documents] ADD [GoogleDriveFileID] NVARCHAR(100) NULL;");
             db.Database.ExecuteSqlRaw("IF COL_LENGTH('Documents','GoogleDriveLink') IS NULL ALTER TABLE [Documents] ADD [GoogleDriveLink] NVARCHAR(MAX) NULL;");
+            
+            // --- DOCUMENT VERSION EXTENSIONS ---
+            db.Database.ExecuteSqlRaw("IF COL_LENGTH('DocumentVersions','ExternalPublicID') IS NULL ALTER TABLE [DocumentVersions] ADD [ExternalPublicID] NVARCHAR(255) NULL;");
+            db.Database.ExecuteSqlRaw("IF COL_LENGTH('DocumentVersions','RestoredFromID') IS NULL ALTER TABLE [DocumentVersions] ADD [RestoredFromID] INT NULL;");
+
+            // Sign-in audit rows use WorkplaceID = NULL (platform scope). Legacy DBs had NOT NULL here, which blocked every insert.
+            try
+            {
+                db.Database.ExecuteSqlRaw(@"
+IF EXISTS (SELECT 1 FROM sys.tables t WHERE t.name = N'AuditLogs' AND t.schema_id = SCHEMA_ID(N'dbo'))
+ AND EXISTS (
+    SELECT 1 FROM sys.columns c
+    INNER JOIN sys.tables t ON c.object_id = t.object_id
+    WHERE t.name = N'AuditLogs' AND c.name = N'WorkplaceID' AND c.is_nullable = 0)
+BEGIN
+    ALTER TABLE [dbo].[AuditLogs] ALTER COLUMN [WorkplaceID] INT NULL;
+END
+");
+            }
+            catch { /* column may already be nullable or ALTER not permitted */ }
 
             // --- BATCH UPDATES ---
             db.Database.ExecuteSqlRaw(@"
@@ -335,6 +381,20 @@ UPDATE [Documents] SET [PublicAccessLevel] = 'Restricted' WHERE [PublicAccessLev
     {
         // Do not stop app startup; failures here will show up in logs and can be addressed
         // via a proper EF migration. Swallow exceptions to avoid crashing the app during dev.
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FileMatrix_Pabiran_.Data.ApplicationDbContext>();
+    try
+    {
+        var count = db.AuditLogs.Count();
+        Console.WriteLine("AUDIT LOGS COUNT: " + count);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("AUDIT LOGS ERROR: " + ex.Message);
     }
 }
 

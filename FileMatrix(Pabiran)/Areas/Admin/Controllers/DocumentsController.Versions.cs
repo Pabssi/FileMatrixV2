@@ -120,7 +120,8 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 MimeType = oldVersion.MimeType,
                 UploadedByUserID = CurrentMembership.UserID,
                 UploadedAt = DateTime.UtcNow,
-                ChangeNote = $"Restored from v{oldVersion.VersionNumber:0.0}"
+                ChangeNote = $"Restored from v{oldVersion.VersionNumber:0.0}",
+                RestoredFromID = oldVersion.VersionID
             };
 
             _context.DocumentVersions.Add(newVersion);
@@ -139,6 +140,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 EntityType = "Document",
                 EntityID = oldVersion.DocumentID,
                 UserID = CurrentMembership.UserID,
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
                 PerformedAt = DateTime.UtcNow,
                 Details = $"Restored document to v{oldVersion.VersionNumber:0.0}"
             };

@@ -1,8 +1,15 @@
-  @model IEnumerable<FileMatrix_Pabiran_.Models.AuditLog>
+@model IEnumerable<FileMatrix_Pabiran_.Models.AuditLog>
 @{
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Audit Log";
     var actionTypes = ViewBag.ActionTypes as List<string> ?? new List<string>();
+    var actionFilterCurrent = ViewBag.ActionFilter as string;
+    var auditPage = ViewBag.AuditPage is int ap ? ap : 1;
+    var auditTotalPages = ViewBag.AuditTotalPages is int tp ? tp : 1;
+    var auditTotalFiltered = ViewBag.AuditTotalFiltered is int tf ? tf : 0;
+    var auditPageSize = ViewBag.AuditPageSize is int ps ? ps : 20;
+    var rowStart = auditTotalFiltered == 0 ? 0 : (auditPage - 1) * auditPageSize + 1;
+    var rowEnd = Math.Min(auditPage * auditPageSize, auditTotalFiltered);
 }
 
 @section Head {
@@ -66,24 +73,39 @@
     </div>
 </div>
 
-<form asp-action="Index" method="get" class="audit-search-bar d-flex flex-wrap align-items-center gap-2 reveal-on-scroll">
+<form asp-area="Admin" asp-controller="Audit" asp-action="Index" method="get" class="audit-search-bar d-flex flex-wrap align-items-center gap-2 reveal-on-scroll">
     <div class="flex-grow-1">
         <input type="text" name="query" value="@ViewBag.Query"
                class="form-control audit-search-input"
                placeholder="Search logs by user, details, or entity..." />
     </div>
     <select name="actionFilter" class="form-select form-select-sm" style="max-width: 180px;border-radius:999px;height:2.5rem;" onchange="this.form.submit()">
-        <option value="">All Actions</option>
+        @* Boolean selected="False" still leaves the attribute present — browsers may pick the wrong option. *@
+        @if (string.IsNullOrWhiteSpace(actionFilterCurrent))
+        {
+            <option value="" selected>All Actions</option>
+        }
+        else
+        {
+            <option value="">All Actions</option>
+        }
         @foreach (var action in actionTypes)
         {
-            <option value="@action" selected="@(ViewBag.ActionFilter == action)">@action</option>
+            if (string.Equals(actionFilterCurrent, action, StringComparison.Ordinal))
+            {
+                <option value="@action" selected>@action</option>
+            }
+            else
+            {
+                <option value="@action">@action</option>
+            }
         }
     </select>
     <button type="submit" class="btn btn-dark rounded-pill px-3 fw-bold h-100" style="height:2.5rem !important;">Filter</button>
 </form>
 
 <div class="audit-timeline reveal-on-scroll">
-    @if (!Model.Any())
+    @if (Model == null || !Model.Any())
     {
         <div class="text-center py-5">
             <p class="text-muted m-0">No activity logs found matching your filters.</p>
@@ -113,6 +135,40 @@
                 </div>
             }
         </div>
+    }
+
+    @if (auditTotalFiltered > 0)
+    {
+        var queryStr = ViewBag.Query as string;
+        <nav class="audit-pager d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+            <span class="text-muted small">Showing @rowStart–@rowEnd of @auditTotalFiltered</span>
+            @if (auditTotalPages > 1)
+            {
+                <div class="d-flex align-items-center gap-1">
+                    @if (auditPage > 1)
+                    {
+                        <a class="btn btn-sm btn-outline-secondary rounded-pill"
+                           asp-area="Admin" asp-controller="Audit" asp-action="Index"
+                           asp-route-query="@queryStr" asp-route-actionFilter="@actionFilterCurrent" asp-route-page="@(auditPage - 1)">Previous</a>
+                    }
+                    else
+                    {
+                        <span class="btn btn-sm btn-outline-secondary rounded-pill disabled opacity-50">Previous</span>
+                    }
+                    <span class="small text-muted px-2">Page @auditPage of @auditTotalPages</span>
+                    @if (auditPage < auditTotalPages)
+                    {
+                        <a class="btn btn-sm btn-outline-secondary rounded-pill"
+                           asp-area="Admin" asp-controller="Audit" asp-action="Index"
+                           asp-route-query="@queryStr" asp-route-actionFilter="@actionFilterCurrent" asp-route-page="@(auditPage + 1)">Next</a>
+                    }
+                    else
+                    {
+                        <span class="btn btn-sm btn-outline-secondary rounded-pill disabled opacity-50">Next</span>
+                    }
+                </div>
+            }
+        </nav>
     }
 </div>
 

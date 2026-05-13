@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Configure authenticator (user)";
+    Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
+    int targetUserId = ViewBag.TargetUserId is int tid ? tid : 0;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/admin/settings.css" asp-append-version="true" />
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-5 reveal-on-scroll">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="Users" class="text-indigo text-decoration-none fw-bold small">All Users</a></li>
+                <li class="breadcrumb-item"><a asp-area="SuperAdmin" asp-controller="UserSecurity" asp-action="Security" asp-route-id="@targetUserId" class="text-indigo text-decoration-none fw-bold small">Sign-in security</a></li>
+                <li class="breadcrumb-item active fw-bold text-muted small" aria-current="page">Authenticator</li>
+            </ol>
+        </nav>
+        <h2 class="fw-extrabold text-dark mb-1">Setup authenticator for user</h2>
+        <p class="text-muted fw-medium">User ID @targetUserId — scan with their authenticator app (or share the secret securely).</p>
+    </div>
+
+    <div class="row justify-content-center reveal-on-scroll">
+        <div class="col-xl-6">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden premium-card transition-all">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h4 class="fw-bold text-dark">Scan QR code</h4>
+                        <p class="text-muted">Open an authenticator app and scan this code for this account.</p>
+                    </div>
+
+                    <div class="d-flex justify-content-center mb-5 p-3 bg-white border rounded-4 shadow-sm mx-auto" style="width: fit-content;" id="qrCode"></div>
+
+                    <div class="alert alert-light border rounded-4 p-3 mb-5">
+                        <p class="small fw-bold text-muted text-uppercase ls-wide mb-2">Manual entry</p>
+                        <code class="bg-white border rounded px-3 py-2 fw-bold text-indigo d-block text-center text-break" style="font-size: 1rem; letter-spacing: 2px;">@ViewBag.SharedKey</code>
+                    </div>
+
+                    <form asp-area="SuperAdmin" asp-controller="UserSecurity" asp-action="EnableAuthenticator" asp-route-id="@targetUserId" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase ls-wide">Verification code</label>
+                            <input type="text" name="code" class="form-control premium-form-control py-3 rounded-3 text-center fw-bold"
+                                   required placeholder="000 000" maxlength="7" autocomplete="off" style="font-size: 1.5rem; letter-spacing: 10px;">
+                            <div class="text-danger small mt-2">@Html.ValidationMessage("code")</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-indigo-gradient text-white fw-bold rounded-pill py-3 shadow-sm border-0">Verify &amp; activate MFA</button>
+                            <a asp-area="SuperAdmin" asp-controller="UserSecurity" asp-action="Security" asp-route-id="@targetUserId" class="btn btn-link text-muted fw-bold text-decoration-none">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        new QRCode(document.getElementById("qrCode"), {
+            text: "@Html.Raw(ViewBag.AuthenticatorUri)",
+            width: 200,
+            height: 200,
+            colorDark: "#1e1b4b",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    </script>
+}

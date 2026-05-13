@@ -16,7 +16,7 @@
             <div class="d-flex flex-column">
                 <h1 class="h6 mb-0 fw-bold text-dark">@Model.Document.Title</h1>
                 <div class="d-flex align-items-center gap-2 mt-1">
-                    <span class="doc-info-badge">v@Model.Document.CurrentVersionNumber</span>
+                    <span class="doc-info-badge">v@(Model.Document.CurrentVersionNumber)</span>
                     <span class="text-muted small" style="font-size: 0.7rem;">Updated @Model.Document.UpdatedAt.ToString("MMM dd, yyyy")</span>
                 </div>
             </div>
@@ -39,8 +39,9 @@
     <div class="viewer-content">
         @if (Model.Document.IsOfficeDocument)
         {
-            @* Office Viewer Integration *@
-            var fileUrl = Url.Action("ViewFile", "Documents", new { area = "Admin", id = Model.Document.DocumentID, token = Model.Document.PublicShareToken }, protocol: Context.Request.Scheme);
+            @* Office Viewer Integration: Microsoft requires a publicly reachable direct URL.
+               We provide a signed Cloudinary URL so Microsoft can fetch the private file. *@
+            var fileUrl = Model.Document.SignedUrl;
             var encodedUrl = System.Net.WebUtility.UrlEncode(fileUrl);
             var officeViewerUrl = $"https://view.officeapps.live.com/op/view.aspx?src={encodedUrl}";
 

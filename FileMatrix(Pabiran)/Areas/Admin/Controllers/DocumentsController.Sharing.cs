@@ -28,7 +28,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
         /// to populate the sharing modal.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetShareDetails(int id)
+        public async Task<IActionResult> GetShareStatus(int id)
         {
             if (CurrentWorkplace == null || CurrentMembership == null) return Unauthorized();
 
@@ -89,6 +89,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             return Json(new
             {
                 success = true,
+                hasToken = !string.IsNullOrEmpty(doc.PublicShareToken),
                 isPublic = doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor",
                 publicAccessLevel = doc.PublicAccessLevel ?? "Restricted",
                 publicLink = publicLink,
@@ -96,6 +97,29 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 pendingInvites = pendingInvites,
                 owner = owner
             });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Share(int id)
+        {
+            if (CurrentWorkplace == null || CurrentMembership == null) return Unauthorized();
+            if (CurrentMembership.RoleID > 2) return Forbid();
+
+            var doc = await _context.Documents.FindAsync(id);
+            if (doc == null || doc.WorkplaceID != CurrentWorkplace.WorkplaceID) return NotFound();
+
+            if (string.IsNullOrEmpty(doc.PublicShareToken))
+            {
+                doc.PublicShareToken = Guid.NewGuid().ToString("n");
+            }
+            
+            // Secure by default: new shares are Restricted (only people with specific permission or invite)
+            doc.PublicAccessLevel = "Restricted";
+            await _context.SaveChangesAsync();
+
+            var publicLink = Url.Action("Document", "Shared", new { area = "", id = id, token = doc.PublicShareToken }, HttpContext.Request.Scheme);
+
+            return Json(new { success = true, publicLink = publicLink });
         }
 
         /// <summary>
@@ -139,6 +163,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 EntityType = "Document",
                 EntityID = doc.DocumentID,
                 UserID = CurrentMembership.UserID,
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
                 PerformedAt = DateTime.UtcNow,
                 Details = enabled ? $"Enabled public sharing ({level})" : "Disabled public sharing"
             };

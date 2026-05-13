@@ -92,6 +92,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 EntityType = "Document",
                 EntityID = doc.DocumentID,
                 Details = $"Moved document '{doc.Title}' from '{oldCategory}' to '{newCatName}'",
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
                 PerformedAt = DateTime.UtcNow
             };
             _context.AuditLogs.Add(auditLog);
@@ -126,6 +127,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 EntityType = "Document",
                 EntityID = doc.DocumentID,
                 UserID = CurrentMembership.UserID,
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
                 PerformedAt = DateTime.UtcNow,
                 Details = $"Archived document: {doc.Title}"
             };
@@ -156,6 +158,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 EntityType = "Document",
                 EntityID = doc.DocumentID,
                 UserID = CurrentMembership.UserID,
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
                 PerformedAt = DateTime.UtcNow,
                 Details = $"Restored document: {doc.Title}"
             };

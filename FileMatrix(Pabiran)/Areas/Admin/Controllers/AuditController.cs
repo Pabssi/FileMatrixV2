@@ -20,19 +20,22 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
         {
         }
 
+        private const int AuditPageSize = 20;
+
         /// <summary>
         /// Retrieves and filters the workplace audit trail based on action types 
         /// and text queries.
         /// </summary>
-        public async Task<IActionResult> Index(string? query, string? actionFilter)
+        public async Task<IActionResult> Index(string? query, string? actionFilter, int page = 1)
         {
             if (CurrentWorkplace == null) return RedirectToAction("Index", "Organizations", new { area = "" });
 
+            // Platform sign-in rows use EntityType "Security". Exclude those from tenant audit (including legacy NULL EntityType rows).
             var auditQuery = _context.AuditLogs
                 .Include(l => l.User)
-                .Where(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID);
+                .Where(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && (l.EntityType == null || l.EntityType != "Security"));
 
-            if (!string.IsNullOrEmpty(actionFilter))
+            if (!string.IsNullOrWhiteSpace(actionFilter))
             {
                 auditQuery = auditQuery.Where(l => l.Action == actionFilter);
             }
@@ -40,27 +43,44 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             if (!string.IsNullOrEmpty(query))
             {
                 var lowerQuery = query.ToLower();
-                auditQuery = auditQuery.Where(l => (l.Details != null && l.Details.ToLower().Contains(lowerQuery)) 
-                                                 || (l.EntityType != null && l.EntityType.ToLower().Contains(lowerQuery)));
+                // Match details, entity, action, and actor (same signals the search placeholder promises).
+                auditQuery = auditQuery.Where(l =>
+                    (l.Details != null && l.Details.ToLower().Contains(lowerQuery))
+                    || (l.EntityType != null && l.EntityType.ToLower().Contains(lowerQuery))
+                    || (l.Action != null && l.Action.ToLower().Contains(lowerQuery))
+                    || (l.User != null && l.User.DisplayName != null && l.User.DisplayName.ToLower().Contains(lowerQuery))
+                    || (l.User != null && l.User.Username != null && l.User.Username.ToLower().Contains(lowerQuery))
+                    || (l.User != null && l.User.Email != null && l.User.Email.ToLower().Contains(lowerQuery)));
             }
+
+            var totalFiltered = await auditQuery.CountAsync();
+            var totalPages = totalFiltered == 0 ? 1 : (int)Math.Ceiling(totalFiltered / (double)AuditPageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
 
             var logs = await auditQuery
                 .OrderByDescending(l => l.PerformedAt)
-                .Take(100)
+                .Skip((page - 1) * AuditPageSize)
+                .Take(AuditPageSize)
                 .ToListAsync();
 
             // Stats for the view
-            ViewBag.TotalEvents = await _context.AuditLogs.CountAsync(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID);
+            ViewBag.TotalEvents = await _context.AuditLogs.CountAsync(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && (l.EntityType == null || l.EntityType != "Security"));
             ViewBag.DocumentActions = await _context.AuditLogs.CountAsync(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && l.EntityType == "Document");
             ViewBag.UserActions = await _context.AuditLogs.CountAsync(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && l.EntityType == "User");
-            ViewBag.TodayEvents = await _context.AuditLogs.CountAsync(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && l.PerformedAt >= DateTime.UtcNow.Date);
+            ViewBag.TodayEvents = await _context.AuditLogs.CountAsync(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && (l.EntityType == null || l.EntityType != "Security") && l.PerformedAt >= DateTime.UtcNow.Date);
 
             ViewBag.Query = query;
             ViewBag.ActionFilter = actionFilter;
+            ViewBag.AuditPage = page;
+            ViewBag.AuditTotalPages = totalPages;
+            ViewBag.AuditTotalFiltered = totalFiltered;
+            ViewBag.AuditPageSize = AuditPageSize;
             ViewBag.ActionTypes = await _context.AuditLogs
-                .Where(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID)
-                .Select(l => l.Action)
+                .Where(l => l.WorkplaceID == CurrentWorkplace.WorkplaceID && (l.EntityType == null || l.EntityType != "Security") && l.Action != null && l.Action != "")
+                .Select(l => l.Action!)
                 .Distinct()
+                .OrderBy(a => a)
                 .ToListAsync();
 
             return View(logs);

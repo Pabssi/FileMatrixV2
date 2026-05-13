@@ -1,6 +1,11 @@
+@using FileMatrix_Pabiran_.Models
 @{
     Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
     ViewData["Title"] = "System Audit Logs";
+    var logs = ViewBag.Logs as IEnumerable<AuditLog> ?? Enumerable.Empty<AuditLog>();
+    var severity = ViewBag.Severity as string ?? "all";
+    var totalCount = ViewBag.TotalCount is int tc ? tc : 0;
+    var pageSize = ViewBag.PageSize is int ps ? ps : 25;
 }
 
 @section Head {
@@ -9,14 +14,44 @@
 
 <div class="superadmin-header reveal-on-scroll">
     <h1>Audit Logs</h1>
-    <p>Complete traceability of all system-wide administrative actions.</p>
+    <p class="text-muted mb-0">Platform-wide activity. Use severity to focus on riskier events.</p>
 </div>
+
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3 reveal-on-scroll">
+    <div class="text-muted small">
+        <strong>@totalCount</strong> row(s) match this filter.
+    </div>
+</div>
+
+<form method="get" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="AuditLogs" class="sa-audit-toolbar reveal-on-scroll">
+    <input type="hidden" name="page" value="1" />
+    <div>
+        <label class="form-label" for="al-severity">Severity</label>
+        <select name="severity" id="al-severity" class="form-select form-select-sm" style="min-width: 12rem;" onchange="this.form.querySelector('input[name=page]').value='1'; this.form.submit();">
+            @foreach (var o in new (string v, string l)[] { ("all", "All"), ("critical", "Critical (lockouts, deletions, key/share revoke)"), ("high", "High (failed sign-in, role/status, archive)"), ("normal", "Normal (other)") })
+            {
+                if (severity == o.v)
+                {
+                    <option value="@o.v" selected="selected">@o.l</option>
+                }
+                else
+                {
+                    <option value="@o.v">@o.l</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="text-muted small align-self-center">
+        @pageSize rows per page.
+    </div>
+</form>
 
 <div class="log-table-card reveal-on-scroll">
     <div class="table-responsive">
         <table class="table mb-0">
             <thead>
                 <tr>
+                    <th>Severity</th>
                     <th>Timestamp</th>
                     <th>User ID</th>
                     <th>Action</th>
@@ -26,32 +61,42 @@
                 </tr>
             </thead>
             <tbody>
-                @if (ViewBag.Logs != null && ((IEnumerable<dynamic>)ViewBag.Logs).Any())
+                @if (logs.Any())
                 {
-                    foreach (var log in ViewBag.Logs)
+                    foreach (var log in logs)
                     {
                         <tr>
+                            <td><span class="sa-severity-badge @SuperAdminAuditSeverityUi.CssClassForPlatform(log)">@SuperAdminAuditSeverityUi.LabelForPlatform(log)</span></td>
                             <td class="log-timestamp">@log.PerformedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td><span class="badge bg-light text-dark">#@log.UserID</span></td>
+                            <td>
+                                @if (log.UserID.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark">#@log.UserID</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
                             <td>
                                 <span class="log-action-badge @(log.Action?.ToLower().Contains("create") == true ? "log-action--create" : log.Action?.ToLower().Contains("update") == true ? "log-action--update" : log.Action?.ToLower().Contains("delete") == true ? "log-action--delete" : "log-action--login")">
                                     @log.Action
                                 </span>
                             </td>
-                            <td><span class="text-muted">@log.EntityType</span></td>
+                            <td><span class="text-muted">@(log.EntityType ?? "—")</span></td>
                             <td>
                                 <div class="log-details" title="@log.Details">@log.Details</div>
                             </td>
-                            <td class="text-muted">@log.IpAddress</td>
+                            <td class="text-muted">@(log.IpAddress ?? "—")</td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="6" class="text-center py-5">
-                            <div class="text-muted mb-2">No audit logs found in the system.</div>
-                            <small class="text-muted opacity-50">New activity will appear here automatically.</small>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted mb-2">No audit rows for this filter.</div>
+                            <a asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="AuditLogs" asp-route-severity="all" asp-route-page="1">Clear severity filter</a>
                         </td>
                     </tr>
                 }
@@ -59,3 +104,5 @@
         </table>
     </div>
 </div>
+
+@await Html.PartialAsync("~/Areas/SuperAdmin/Views/Shared/_SuperAdminLogPager.cshtml")

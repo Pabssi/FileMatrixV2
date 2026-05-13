@@ -1,5 +1,7 @@
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @model FileMatrix_Pabiran_.Models.RegisterViewModel
-<form asp-area="" asp-controller="Account" asp-action="Register" method="post" id="registerForm">
+<form asp-area="" asp-controller="Account" asp-action="Register" method="post" id="registerForm" data-recaptcha-sitekey="@Configuration["Recaptcha:SiteKey"]">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -27,12 +29,8 @@
         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
     </div>
 
-    <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary">Register</button>
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary w-100">Register</button>
     </div>
 </form>
 <partial name="_ValidationScriptsPartial" />
-
-@* Script for modal AJAX submit moved to ~/wwwroot/js/auth-modal.js so it runs after
-   jQuery and Bootstrap are loaded. This keeps the modal behavior consistent and
-   avoids race conditions when the layout renders the modal before scripts. *@

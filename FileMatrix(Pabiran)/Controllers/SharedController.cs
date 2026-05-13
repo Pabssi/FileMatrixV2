@@ -20,10 +20,12 @@ namespace FileMatrix_Pabiran_.Controllers
     public class SharedController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly FileMatrix_Pabiran_.Services.CloudinaryService _cloudinaryService;
 
-        public SharedController(ApplicationDbContext context)
+        public SharedController(ApplicationDbContext context, FileMatrix_Pabiran_.Services.CloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
 
         /// <summary>
@@ -139,6 +141,13 @@ namespace FileMatrix_Pabiran_.Controllers
             var wp = await _context.Workplaces.FindAsync(doc.WorkplaceID);
             string workplaceName = wp?.Name ?? "Workspace";
 
+            // PRE-SIGN Cloudinary URL for Office Viewer
+            string? signedUrl = null;
+            if (latestVersion?.FilePath != null && latestVersion.FilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                signedUrl = _cloudinaryService.GetSignedUrl(latestVersion.FilePath);
+            }
+
             var vm = new DocumentDetailsViewModel
             {
                 WorkplaceID = doc.WorkplaceID,
@@ -159,7 +168,8 @@ namespace FileMatrix_Pabiran_.Controllers
                     CategoryName = category?.Name ?? "Uncategorized",
                     MimeType = latestVersion?.MimeType,
                     PublicShareToken = doc.PublicShareToken,
-                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken)
+                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken),
+                    SignedUrl = signedUrl
                 }
             };
 
@@ -172,12 +182,14 @@ namespace FileMatrix_Pabiran_.Controllers
 
         private string FormatBytes(long bytes)
         {
-            string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
-            int i;
+            if (bytes <= 0) return "0 B";
+            string[] Suffix = { "B", "KB", "MB", "GB", "TB", "PB", "EB" };
+            int i = 0;
             double dblSByte = bytes;
-            for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            while (dblSByte >= 1024 && i < Suffix.Length - 1)
             {
-                dblSByte = bytes / 1024.0;
+                dblSByte /= 1024.0;
+                i++;
             }
             return $"{dblSByte:0.##} {Suffix[i]}";
         }

@@ -1,0 +1,51 @@
+@* Expects ViewBag: PagerAction (string), Page (int), TotalPages (int), Severity (string) *@
+@{
+    var pagerAction = ViewBag.PagerAction as string ?? "AuditLogs";
+    var pagerPage = ViewBag.Page is int p ? p : 1;
+    var totalPages = ViewBag.TotalPages is int tp ? tp : 1;
+    var severity = ViewBag.Severity as string ?? "all";
+}
+@if (totalPages > 1)
+{
+    <nav class="sa-log-pager d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" aria-label="Pagination">
+        <div class="text-muted small">
+            Page <strong>@pagerPage</strong> of <strong>@totalPages</strong>
+        </div>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(pagerPage <= 1 ? "disabled" : null)">
+                <a class="page-link" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="@pagerAction" asp-route-page="@(pagerPage - 1)" asp-route-severity="@severity">Previous</a>
+            </li>
+            @{
+                var window = 2;
+                var start = Math.Max(1, pagerPage - window);
+                var end = Math.Min(totalPages, pagerPage + window);
+                if (start > 1)
+                {
+                    <li class="page-item"><a class="page-link" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="@pagerAction" asp-route-page="1" asp-route-severity="@severity">1</a></li>
+                    if (start > 2)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                }
+                for (var i = start; i <= end; i++)
+                {
+                    var pi = i;
+                    <li class="page-item @(pi == pagerPage ? "active" : null)">
+                        <a class="page-link" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="@pagerAction" asp-route-page="@pi" asp-route-severity="@severity">@pi</a>
+                    </li>
+                }
+                if (end < totalPages)
+                {
+                    if (end < totalPages - 1)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    <li class="page-item"><a class="page-link" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="@pagerAction" asp-route-page="@totalPages" asp-route-severity="@severity">@totalPages</a></li>
+                }
+            }
+            <li class="page-item @(pagerPage >= totalPages ? "disabled" : null)">
+                <a class="page-link" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="@pagerAction" asp-route-page="@(pagerPage + 1)" asp-route-severity="@severity">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

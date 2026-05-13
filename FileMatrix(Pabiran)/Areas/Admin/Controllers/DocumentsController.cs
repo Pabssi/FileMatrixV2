@@ -38,7 +38,9 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             _emailSender = emailSender;
         }
 
-        public async Task<IActionResult> Index(string? query, int? categoryId, string? status)
+    public async Task<IActionResult> Index(string? query, int? categoryId, string? status)
+    {
+        try
         {
             if (CurrentWorkplace == null) return RedirectToAction("Index", "Organizations", new { area = "" });
 
@@ -58,7 +60,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             if (!string.IsNullOrEmpty(query))
             {
                 var lowerQuery = query.ToLower();
-                docQuery = docQuery.Where(d => d.Title.ToLower().Contains(lowerQuery) || (d.Description != null && d.Description.ToLower().Contains(lowerQuery)));
+                docQuery = docQuery.Where(d => (d.Title != null && d.Title.ToLower().Contains(lowerQuery)) || (d.Description != null && d.Description.ToLower().Contains(lowerQuery)));
             }
 
             if (categoryId.HasValue)
@@ -103,7 +105,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                     CategoryID = doc.CategoryID,
                     Title = doc.Title ?? "Untitled",
                     Description = doc.Description,
-                    CategoryName = doc.CategoryID != null && categories.ContainsKey(doc.CategoryID.Value) ? categories[doc.CategoryID.Value] : "Uncategorized",
+                    CategoryName = doc.CategoryID != null && categories.ContainsKey(doc.CategoryID.Value) ? categories[doc.CategoryID.Value] ?? "Uncategorized" : "Uncategorized",
                     FileName = latestVersion?.FileName ?? "No file",
                     FileSizeFormatted = FormatBytes(latestVersion?.FileSizeBytes ?? 0),
                     CurrentVersionNumber = latestVersion?.VersionNumber.ToString("0.0") ?? "1.0",
@@ -117,7 +119,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                     MimeType = latestVersion?.MimeType,
                     PublicShareToken = doc.PublicShareToken,
                     PublicAccessLevel = doc.PublicAccessLevel,
-                    Tags = new List<string> { (doc.CategoryID != null && categories.ContainsKey(doc.CategoryID.Value) ? categories[doc.CategoryID.Value].ToLower() : "general"), "report" },
+                    Tags = new List<string> { (doc.CategoryID != null && categories.ContainsKey(doc.CategoryID.Value) && categories[doc.CategoryID.Value] != null ? categories[doc.CategoryID.Value]!.ToLower() : "general"), "report" },
                     IsShared = !string.IsNullOrEmpty(doc.PublicShareToken) && (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor")
                 });
             }
@@ -136,6 +138,23 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 
             return View(vm);
         }
+        catch (Exception ex)
+        {
+            // Even in error state, try to provide categories for the upload modal
+            try {
+                var currentWpId = CurrentWorkplace?.WorkplaceID;
+                ViewBag.CategoriesList = await _context.Categories
+                    .Where(c => c.WorkplaceID == currentWpId)
+                    .ToListAsync();
+            } catch { /* Ignore category load errors in fallback */ }
+
+            return View(new DocumentListViewModel { 
+                WorkplaceName = CurrentWorkplace?.Name ?? "Workspace",
+                Documents = new List<DocumentItemViewModel>(),
+                SearchQuery = "Error loading documents: " + ex.Message
+            });
+        }
+    }
 
         [AllowAnonymous]
         public async Task<IActionResult> Details(int id, string? token = null)
@@ -224,6 +243,13 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                 workplaceName = wp?.Name ?? "Workspace";
             }
 
+            // PRE-SIGN Cloudinary URL for Office Viewer
+            string? signedUrl = null;
+            if (latestVersion?.FilePath != null && latestVersion.FilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                signedUrl = _cloudinaryService.GetSignedUrl(latestVersion.FilePath);
+            }
+
             var vm = new DocumentDetailsViewModel
             {
                 WorkplaceID = doc.WorkplaceID,
@@ -247,7 +273,8 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
                     MimeType = latestVersion?.MimeType,
                     PublicShareToken = doc.PublicShareToken,
                     PublicAccessLevel = doc.PublicAccessLevel,
-                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken) && (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor")
+                    IsShared = !string.IsNullOrEmpty(doc.PublicShareToken) && (doc.PublicAccessLevel == "Viewer" || doc.PublicAccessLevel == "Editor"),
+                    SignedUrl = signedUrl
                 }
             };
 
@@ -273,12 +300,14 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
 
         private string FormatBytes(long bytes)
         {
-            string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
-            int i;
+            if (bytes <= 0) return "0 B";
+            string[] Suffix = { "B", "KB", "MB", "GB", "TB", "PB", "EB" };
+            int i = 0;
             double dblSByte = bytes;
-            for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            while (dblSByte >= 1024 && i < Suffix.Length - 1)
             {
-                dblSByte = bytes / 1024.0;
+                dblSByte /= 1024.0;
+                i++;
             }
             return $"{dblSByte:0.##} {Suffix[i]}";
         }

@@ -44,10 +44,10 @@ namespace FileMatrix_Pabiran_.Services
                 throw new ArgumentException("File is empty");
 
             // 1. Upload to Cloudinary instead of local disk
-            string secureUrl;
+            CloudinaryUploadResult uploadResult;
             using (var stream = file.OpenReadStream())
             {
-                secureUrl = await _cloudinary.UploadAsync(stream, file.FileName, workplaceId.ToString());
+                uploadResult = await _cloudinary.UploadAsync(stream, file.FileName, workplaceId.ToString());
             }
 
             // 4. Create Document record
@@ -97,7 +97,8 @@ namespace FileMatrix_Pabiran_.Services
                 DocumentID = document.DocumentID,
                 VersionNumber = 1.0m,
                 FileName = file.FileName,
-                FilePath = secureUrl, // Store secure Cloudinary URL
+                FilePath = uploadResult.SecureUrl, // Store secure Cloudinary URL
+                ExternalPublicID = uploadResult.PublicId,
                 FileSizeBytes = file.Length,
                 MimeType = file.ContentType,
                 UploadedByUserID = userId,
@@ -112,19 +113,27 @@ namespace FileMatrix_Pabiran_.Services
             document.CurrentVersionID = version.VersionID;
             await _context.SaveChangesAsync();
 
-            // 6. Log activity
-            var log = new AuditLog
+            // 6. Log activity (Resilient)
+            try
             {
-                WorkplaceID = workplaceId,
-                Action = "Document Uploaded",
-                EntityType = "Document",
-                EntityID = document.DocumentID,
-                UserID = userId,
-                PerformedAt = DateTime.UtcNow,
-                Details = $"Uploaded file: {file.FileName} (v1.0)"
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+                var log = new AuditLog
+                {
+                    WorkplaceID = workplaceId,
+                    Action = "Document Uploaded",
+                    EntityType = "Document",
+                    EntityID = document.DocumentID,
+                    UserID = userId,
+                    PerformedAt = DateTime.UtcNow,
+                    Details = $"Uploaded file: {file.FileName} (v1.0)"
+                };
+                _context.AuditLogs.Add(log);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Safety net: Log failed audit entries but don't crash the upload
+                System.Diagnostics.Debug.WriteLine($"Audit Log failed during upload: {ex.Message}");
+            }
 
             return document;
         }
@@ -144,10 +153,10 @@ namespace FileMatrix_Pabiran_.Services
                 throw new ArgumentException("File is empty");
 
             // 1. Upload to Cloudinary
-            string secureUrl;
+            CloudinaryUploadResult uploadResult;
             using (var stream = file.OpenReadStream())
             {
-                secureUrl = await _cloudinary.UploadAsync(stream, file.FileName, doc.WorkplaceID.ToString());
+                uploadResult = await _cloudinary.UploadAsync(stream, file.FileName, doc.WorkplaceID.ToString());
             }
 
             // 4. Determine next version number
@@ -165,7 +174,8 @@ namespace FileMatrix_Pabiran_.Services
                 DocumentID = documentId,
                 VersionNumber = nextVersion,
                 FileName = file.FileName,
-                FilePath = secureUrl, // Store secure Cloudinary URL
+                FilePath = uploadResult.SecureUrl, // Store secure Cloudinary URL
+                ExternalPublicID = uploadResult.PublicId,
                 FileSizeBytes = file.Length,
                 MimeType = file.ContentType,
                 UploadedByUserID = userId,

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using FileMatrix_Pabiran_.Models;
@@ -199,7 +199,7 @@ namespace FileMatrix_Pabiran_.Data
                       .WithMany()
                       .HasForeignKey(e => e.UploadedByUserID)
                       .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne<DocumentVersion>()
+                entity.HasOne(e => e.RestoredFrom)
                       .WithMany()
                       .HasForeignKey(e => e.RestoredFromID)
                       .OnDelete(DeleteBehavior.Restrict);

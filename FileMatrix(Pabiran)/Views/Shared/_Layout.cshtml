@@ -8,6 +8,8 @@
 @{
     bool hideMainNav = ViewData["hideMainNav"] != null && (bool)ViewData["hideMainNav"]!;
 }
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +17,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - FileMatrix_Pabiran_</title>
     <link rel="icon" type="image/png" href="~/images/FileMatrix.png" />
+    <!-- Google reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["Recaptcha:SiteKey"]"></script>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

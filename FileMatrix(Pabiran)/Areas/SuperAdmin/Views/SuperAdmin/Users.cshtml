@@ -7,9 +7,12 @@
     <link rel="stylesheet" href="~/css/superadmin/users.css" asp-append-version="true" />
 }
 
-<div class="superadmin-header reveal-on-scroll">
-    <h1>System Users</h1>
-    <p>Global view of all registered platform users.</p>
+<div class="superadmin-header reveal-on-scroll d-flex flex-wrap justify-content-between align-items-start gap-3">
+    <div>
+        <h1>System Users</h1>
+        <p class="mb-0">Global view of all registered platform users.</p>
+    </div>
+    <a asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="CreateSuperAdmin" class="btn btn-dark btn-sm rounded-pill px-4 fw-bold align-self-center">Invite Super Admin</a>
 </div>
 
 <div class="user-table-card reveal-on-scroll">
@@ -21,6 +24,7 @@
                     <th>Email Address</th>
                     <th>System Role</th>
                     <th>Status</th>
+                    <th>2FA / MFA</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -63,10 +67,19 @@
                                     </span>
                                 }
                             </td>
+                            <td>
+                                <a asp-area="SuperAdmin" asp-controller="UserSecurity" asp-action="Security" asp-route-id="@user.Id" class="text-decoration-none fw-semibold small">Manage sign-in security</a>
+                            </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <form asp-action="ToggleUserStatus" asp-route-id="@user.Id" method="post" style="display:inline;">
-                                        <button type="submit" class="action-btn @(user.IsActive ? "action-btn--danger" : "")" title="@(user.IsActive ? "Suspend User" : "Activate User")">
+                                    <form asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="ToggleUserStatus" asp-route-id="@user.Id" method="post" class="d-inline">
+                                        <input type="hidden" name="actionConfirmationPin" value="" autocomplete="off" />
+                                        <button type="button"
+                                                class="action-btn @(user.IsActive ? "action-btn--danger" : "")"
+                                                title="@(user.IsActive ? "Suspend User" : "Activate User")"
+                                                data-fm-superadmin-confirm-toggle
+                                                data-fm-superadmin-target-user-id="@user.Id"
+                                                data-fm-superadmin-target-active="@(user.IsActive ? "true" : "false")">
                                             @if (user.IsActive)
                                             {
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
@@ -77,9 +90,6 @@
                                             }
                                         </button>
                                     </form>
-                                    <a href="#" class="action-btn" title="View Details">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -88,7 +98,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">No users discovered.</td>
+                        <td colspan="6" class="text-center py-5 text-muted">No users discovered.</td>
                     </tr>
                 }
             </tbody>

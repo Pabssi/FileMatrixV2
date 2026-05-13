@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace FileMatrix_Pabiran_.Services
 {
+    public class CloudinaryUploadResult
+    {
+        public string? SecureUrl { get; set; }
+        public string? PublicId { get; set; }
+    }
+
     public class CloudinaryService
     {
         private readonly Cloudinary _cloudinary;
@@ -27,7 +33,7 @@ namespace FileMatrix_Pabiran_.Services
         /// Uploads a file to Cloudinary with 'authenticated' access mode.
         /// Authenticated files are NOT public and require a signed URL to access.
         /// </summary>
-        public async Task<string> UploadAsync(Stream fileStream, string fileName, string folder)
+        public async Task<CloudinaryUploadResult> UploadAsync(Stream fileStream, string fileName, string folder)
         {
             var uploadParams = new RawUploadParams()
             {
@@ -43,7 +49,11 @@ namespace FileMatrix_Pabiran_.Services
                 throw new Exception($"Cloudinary Upload Error: {uploadResult.Error.Message}");
             }
 
-            return uploadResult.SecureUrl.ToString();
+            return new CloudinaryUploadResult
+            {
+                SecureUrl = uploadResult.SecureUrl.ToString(),
+                PublicId = uploadResult.PublicId
+            };
         }
 
         /// <summary>
@@ -77,33 +87,24 @@ namespace FileMatrix_Pabiran_.Services
         /// </summary>
         private string GetSecureDownloadUrl(string cloudinaryUrl)
         {
-             var uri = new Uri(cloudinaryUrl);
-             var segments = uri.Segments;
-             
-             // Public ID is the part after the version (v123456789/)
-             // Format: .../raw/authenticated/v123456789/folder/subfolder/file.ext
-             var authIndex = -1;
-             for(int i = 0; i < segments.Length; i++) {
-                 if (segments[i] == "authenticated/") {
-                     authIndex = i;
-                     break;
-                 }
-             }
+            // Extract the PublicID from the URL
+            // Format: https://res.cloudinary.com/cloud/raw/authenticated/v12345/folder/file.ext
+            var uri = new Uri(cloudinaryUrl);
+            var segments = uri.Segments;
+            
+            var authIndex = Array.FindIndex(segments, s => s == "authenticated/");
+            if (authIndex == -1 || authIndex + 2 >= segments.Length) return cloudinaryUrl;
 
-             if (authIndex == -1 || authIndex + 2 >= segments.Length) return cloudinaryUrl;
+            // Public ID includes everything after the version segment
+            var publicId = string.Join("", segments.Skip(authIndex + 2)).TrimEnd('/');
 
-             // Public ID segments start after the version segment
-             var publicIdSegments = segments.Skip(authIndex + 2); 
-             var publicId = string.Join("", publicIdSegments).TrimEnd('/');
-
-             // Generate a signed URL valid for 1 hour
-             // Using the SDK's built-in private download URL generator correctly
-             // Format requires: publicId, resourceType, type
-             return _cloudinary.Api.UrlImgUp
-                 .ResourceType("raw")
-                 .Type("authenticated")
-                 .Signed(true)
-                 .BuildUrl(publicId);
+            // Use the SDK's built-in URL builder for authenticated 'raw' resources
+            return _cloudinary.Api.Url
+                .ResourceType("raw")
+                .Action("authenticated")
+                .Secure(true)
+                .Signed(true)
+                .BuildUrl(publicId);
         }
 
         /// <summary>

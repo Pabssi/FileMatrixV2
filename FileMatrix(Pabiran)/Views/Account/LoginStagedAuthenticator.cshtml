@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Sign in — step 2 of 2";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<div class="fm-auth-page">
+    <div class="fm-auth-card">
+        <div class="fm-auth-logo">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                <rect width="36" height="36" rx="10" fill="#4f46e5"/>
+                <path d="M10 10h10l6 6v10H10V10z" fill="white" opacity=".9"/>
+                <path d="M20 10l6 6h-6V10z" fill="white" opacity=".5"/>
+            </svg>
+            <span class="fm-auth-logo-text">FileMatrix</span>
+        </div>
+
+        <h1 class="fm-auth-title">Step 2 of 2 — Authenticator</h1>
+        <p class="fm-auth-subtitle">Email verified. Open your authenticator app and enter the 6-digit code to finish signing in.</p>
+
+        <form method="post" asp-action="LoginStagedAuthenticator" asp-controller="Account" asp-route-returnUrl="@returnUrl">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="fm-auth-error"></div>
+            <div class="fm-field">
+                <label for="code" class="fm-label">Authenticator code</label>
+                <input id="code" name="code" type="text" class="fm-input fm-code-input"
+                       placeholder="000000" maxlength="10" autocomplete="one-time-code" required autofocus />
+            </div>
+            <button type="submit" class="fm-btn-primary">Verify & Sign In</button>
+        </form>
+
+        <p class="text-muted small mt-4 mb-0">
+            <a asp-controller="Home" asp-action="Index" class="fm-inline-link">Cancel and return home</a>
+        </p>
+    </div>
+</div>
+
+@section Head {
+    <style>
+        body { background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%); min-height: 100vh; }
+        .fm-auth-page { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px; }
+        .fm-auth-card { background:#fff; border-radius:20px; box-shadow:0 8px 40px rgba(79,70,229,.10); padding:40px 44px; width:100%; max-width:420px; text-align:center; }
+        .fm-auth-logo { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:28px; }
+        .fm-auth-logo-text { font-size:1.25rem; font-weight:700; color:#1e1b4b; letter-spacing:-.3px; }
+        .fm-auth-title { font-size:1.45rem; font-weight:700; color:#1e1b4b; margin:0 0 8px; }
+        .fm-auth-subtitle { color:#64748b; font-size:.95rem; margin:0 0 32px; line-height:1.6; }
+        .fm-auth-error { color:#dc2626; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:12px 16px; font-size:.9rem; margin-bottom:24px; text-align:left; display:none; }
+        .fm-auth-error:not(:empty) { display:block; }
+        .fm-field { margin-bottom:20px; }
+        .fm-label { display:block; font-size:.875rem; font-weight:600; color:#374151; margin-bottom:10px; text-align:left; }
+        .fm-input { width:100%; padding:14px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:1.25rem; font-weight: 700; color:#1e1b4b; background:#f8fafc; text-align:center; letter-spacing: 8px; box-sizing: border-box; }
+        .fm-btn-primary { width:100%; padding:14px; background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border:none; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:4px; }
+        .fm-inline-link { color:#4f46e5; text-decoration:none; font-weight:600; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.getElementById('code');
+            if (input) input.addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); });
+        });
+    </script>
+}

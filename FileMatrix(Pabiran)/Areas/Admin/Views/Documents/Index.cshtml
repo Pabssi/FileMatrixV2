@@ -55,9 +55,12 @@
 
         <select name="categoryId" class="form-select filter-select" onchange="this.form.submit()">
             <option value="">All Categories</option>
-            @foreach (var cat in (IEnumerable<FileMatrix_Pabiran_.Models.Category>)ViewBag.CategoriesList)
+            @if (ViewBag.CategoriesList != null)
             {
-                <option value="@cat.CategoryID" selected="@(Model.CategoryID == cat.CategoryID)">@cat.Name</option>
+                foreach (var cat in (IEnumerable<FileMatrix_Pabiran_.Models.Category>)ViewBag.CategoriesList)
+                {
+                    <option value="@cat.CategoryID" selected="@(Model.CategoryID == cat.CategoryID)">@cat.Name</option>
+                }
             }
         </select>
 
@@ -308,13 +311,16 @@
                                 <div class="fw-bold small text-muted">Uncategorized</div>
                             </div>
                         </div>
-                        @foreach (var cat in (IEnumerable<FileMatrix_Pabiran_.Models.Category>)ViewBag.CategoriesList)
+                        @if (ViewBag.CategoriesList != null)
                         {
-                            <div class="col-6">
-                                <div class="category-option p-3 rounded-4 border text-center cursor-pointer h-100 d-flex align-items-center justify-content-center" data-id="@cat.CategoryID">
-                                    <div class="fw-bold small">@cat.Name</div>
+                            @foreach (var cat in (IEnumerable<FileMatrix_Pabiran_.Models.Category>)ViewBag.CategoriesList)
+                            {
+                                <div class="col-6">
+                                    <div class="category-option p-3 rounded-4 border text-center cursor-pointer h-100 d-flex align-items-center justify-content-center" data-id="@cat.CategoryID">
+                                        <div class="fw-bold small">@cat.Name</div>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         }
                     </div>
                 </div>
@@ -356,9 +362,12 @@
                         <label class="form-label">Category</label>
                         <select name="categoryId" class="form-select">
                             <option value="">Uncategorized</option>
-                            @foreach (var cat in (IEnumerable<FileMatrix_Pabiran_.Models.Category>)ViewBag.CategoriesList)
+                            @if (ViewBag.CategoriesList != null)
                             {
-                                <option value="@cat.CategoryID">@cat.Icon @cat.Name</option>
+                                @foreach (var cat in (IEnumerable<FileMatrix_Pabiran_.Models.Category>)ViewBag.CategoriesList)
+                                {
+                                    <option value="@cat.CategoryID">@cat.Icon @cat.Name</option>
+                                }
                             }
                         </select>
                     </div>
@@ -918,7 +927,7 @@
                 $('#general-access-bg').addClass('bg-light').removeClass('bg-primary-subtle text-primary bg-success-subtle text-success');
                 $('#general-access-icon').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>');
                 
-                $.get('@Url.Action("GetShareDetails")', { id: docId }, function(res) {
+                $.get('@Url.Action("GetShareStatus")', { id: docId }, function(res) {
                     if (res.success) {
                         renderShareUI(res);
                     } else {

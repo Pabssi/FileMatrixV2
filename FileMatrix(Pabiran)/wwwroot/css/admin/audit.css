@@ -128,3 +128,7 @@
     font-weight: 700;
     color: #1e293b;
 }
+
+.audit-pager {
+    margin-top: 0.5rem;
+}

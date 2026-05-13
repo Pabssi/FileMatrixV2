@@ -50,6 +50,7 @@ namespace FileMatrix_Pabiran_.Models
         public bool IsExcel => MimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || MimeType == "application/vnd.ms-excel";
         public bool IsPowerPoint => MimeType == "application/vnd.openxmlformats-officedocument.presentationml.presentation" || MimeType == "application/vnd.ms-powerpoint";
         public bool IsShared { get; set; }
+        public string? SignedUrl { get; set; }
     }
 
     public class DocumentDetailsViewModel

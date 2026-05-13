@@ -128,10 +128,32 @@ namespace FileMatrix_Pabiran_.Services
 
                 if (docsToDelete.Any())
                 {
+                    var cloudinary = serviceProvider.GetRequiredService<CloudinaryService>();
                     _logger.LogInformation($"Policy {policy.ID}: Deleting {docsToDelete.Count} archived documents in workplace {policy.WorkplaceID}");
                     
                     foreach (var doc in docsToDelete)
                     {
+                        // Delete all physical files for this document (all versions)
+                        var versions = await context.DocumentVersions
+                            .Where(v => v.DocumentID == doc.DocumentID)
+                            .ToListAsync();
+
+                        foreach (var version in versions)
+                        {
+                            if (!string.IsNullOrEmpty(version.ExternalPublicID))
+                            {
+                                try
+                                {
+                                    await cloudinary.DeleteAsync(version.ExternalPublicID);
+                                    _logger.LogInformation($"Deleted Cloudinary file: {version.ExternalPublicID}");
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, $"Failed to delete Cloudinary file {version.ExternalPublicID}");
+                                }
+                            }
+                        }
+
                         context.AuditLogs.Add(new AuditLog
                         {
                             WorkplaceID = policy.WorkplaceID,
@@ -139,7 +161,7 @@ namespace FileMatrix_Pabiran_.Services
                             EntityType = "Document",
                             EntityID = doc.DocumentID,
                             PerformedAt = now,
-                            Details = $"Automatically deleted document '{doc.Title}' based on retention policy (>{policy.AutoDeleteAfterDays} days in archive)."
+                            Details = $"Automatically deleted document '{doc.Title}' and its Cloudinary assets based on retention policy (>{policy.AutoDeleteAfterDays} days in archive)."
                         });
 
                         context.Documents.Remove(doc);

@@ -210,7 +210,7 @@ namespace FileMatrix_Pabiran_.Areas.Admin.Controllers
             var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
             
             var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
-            if (!provider.TryGetContentType(version.FileName, out var contentType))
+            if (!provider.TryGetContentType(version.FileName ?? string.Empty, out var contentType))
             {
                 contentType = version.MimeType ?? "application/octet-stream";
             }

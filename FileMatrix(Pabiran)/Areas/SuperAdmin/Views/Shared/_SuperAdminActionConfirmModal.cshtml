@@ -1,0 +1,30 @@
+@* Bootstrap modal: email PIN before invite / suspend (see wwwroot/js/superadmin-action-confirm.js). *@
+<div class="modal fade" id="fmSuperAdminConfirmModal" tabindex="-1" aria-labelledby="fmSuperAdminConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="fmSuperAdminConfirmModalLabel">Confirm action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="text-muted small mb-3 mb-md-4" id="fmSuperAdminConfirmCopy"></p>
+                <div class="d-grid mb-3">
+                    <button type="button" class="btn btn-outline-dark rounded-pill py-2 fw-semibold" id="fmSuperAdminSendPinBtn">
+                        Send code to my email
+                    </button>
+                </div>
+                <label for="fmSuperAdminPinInput" class="form-label fw-semibold small">6-digit code</label>
+                <input type="text" class="form-control form-control-lg text-center letter-spacing-pin rounded-3" id="fmSuperAdminPinInput" maxlength="8" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••" />
+                <div class="small mt-2 text-danger" id="fmSuperAdminPinFeedback" style="min-height:1.25rem;" role="alert"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0 flex-nowrap gap-2">
+                <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold flex-grow-1 flex-sm-grow-0" id="fmSuperAdminConfirmDoBtn" disabled>Confirm</button>
+            </div>
+            @Html.AntiForgeryToken()
+        </div>
+    </div>
+</div>
+<style>
+    .letter-spacing-pin { letter-spacing: 0.35em; font-variant-numeric: tabular-nums; }
+</style>

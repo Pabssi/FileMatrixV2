@@ -1,0 +1,166 @@
+@using FileMatrix_Pabiran_.Models
+@{
+    Layout = "~/Areas/SuperAdmin/Views/Shared/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Login Attempts";
+    var logs = ViewBag.Logs as IEnumerable<AuditLog> ?? Enumerable.Empty<AuditLog>();
+    var severity = ViewBag.Severity as string ?? "all";
+    var totalCount = ViewBag.TotalCount is int tc ? tc : 0;
+    var securityTotal = ViewBag.SecurityTotalAll is int st ? st : 0;
+    var pageSize = ViewBag.PageSize is int ps ? ps : 25;
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/superadmin/audit-logs.css" asp-append-version="true" />
+    <style>
+        .la-stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .la-stat-card {
+            background: var(--sa-card-bg, #1e1e2e);
+            border: 1px solid var(--sa-border, #2e2e3e);
+            border-radius: 14px;
+            padding: 1.1rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+        }
+        .la-stat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; font-weight: 600; }
+        .la-stat-value { font-size: 1.9rem; font-weight: 700; line-height: 1; }
+        .la-stat-value.danger  { color: #f87171; }
+        .la-stat-value.warning { color: #fbbf24; }
+        .la-stat-value.info    { color: #60a5fa; }
+        .la-stat-value.neutral { color: #a78bfa; }
+        .la-stat-sub { font-size: .7rem; color: #6b7280; margin-top: .15rem; }
+        .la-table-card { background: var(--sa-card-bg, #1e1e2e); border: 1px solid var(--sa-border, #2e2e3e); border-radius: 14px; overflow: hidden; }
+        .la-table-card .table { margin-bottom: 0; color: inherit; }
+        .la-table-card thead th { background: rgba(0,0,0,.25); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #9ca3af; border-bottom: 1px solid var(--sa-border, #2e2e3e); padding: .85rem 1rem; white-space: nowrap; }
+        .la-table-card tbody td { padding: .8rem 1rem; border-color: var(--sa-border, #2e2e3e); vertical-align: middle; font-size: .88rem; }
+        .la-table-card tbody tr:hover { background: rgba(255,255,255,.03); }
+    </style>
+}
+
+<div class="superadmin-header reveal-on-scroll">
+    <h1>Login Attempts</h1>
+    <p class="text-muted mb-0">Sign-in, MFA, CAPTCHA, and lockout events.</p>
+</div>
+
+<div class="la-stats-bar reveal-on-scroll">
+    <div class="la-stat-card">
+        <span class="la-stat-label">Events today (UTC)</span>
+        <span class="la-stat-value danger">@ViewBag.TodayCount</span>
+        <span class="la-stat-sub">All security events</span>
+    </div>
+    <div class="la-stat-card">
+        <span class="la-stat-label">Unique IPs</span>
+        <span class="la-stat-value info">@ViewBag.UniqueIPs</span>
+        <span class="la-stat-sub">Distinct IPs (all time)</span>
+    </div>
+    <div class="la-stat-card">
+        <span class="la-stat-label">Lockouts</span>
+        <span class="la-stat-value warning">@ViewBag.LockedCount</span>
+        <span class="la-stat-sub">Password or MFA lock</span>
+    </div>
+    <div class="la-stat-card">
+        <span class="la-stat-label">Matching filter</span>
+        <span class="la-stat-value neutral">@totalCount</span>
+        <span class="la-stat-sub">@securityTotal total security rows</span>
+    </div>
+</div>
+
+<form method="get" asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="LoginAttempts" class="sa-audit-toolbar reveal-on-scroll">
+    <input type="hidden" name="page" value="1" />
+    <div>
+        <label class="form-label" for="la-severity">Severity</label>
+        <select name="severity" id="la-severity" class="form-select form-select-sm" style="min-width: 12rem;" onchange="this.form.querySelector('input[name=page]').value='1'; this.form.submit();">
+            @foreach (var o in new (string v, string l)[] { ("all", "All"), ("critical", "Critical (lockout, MFA/CAPTCHA fail)"), ("high", "High (wrong password)"), ("normal", "Normal (success, MFA steps)") })
+            {
+                if (severity == o.v)
+                {
+                    <option value="@o.v" selected="selected">@o.l</option>
+                }
+                else
+                {
+                    <option value="@o.v">@o.l</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="text-muted small align-self-center">
+        @pageSize rows per page.
+    </div>
+</form>
+
+<div class="la-table-card reveal-on-scroll">
+    <div class="table-responsive">
+        <table class="table mb-0" id="login-attempts-table">
+            <thead>
+                <tr>
+                    <th>Severity</th>
+                    <th>Timestamp (UTC)</th>
+                    <th>User ID</th>
+                    <th>Event</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (logs.Any())
+                {
+                    foreach (var log in logs)
+                    {
+                        var badgeClass = log.Action switch
+                        {
+                            "Login Locked" or "Account Locked" => "log-action--delete",
+                            "Login Failed" or "MFA Failed" or "CAPTCHA Failure" => "log-action--update",
+                            "Login Success" or "MFA Success" => "log-action--create",
+                            "MFA Requested" or "MFA staged (email step)" => "log-action--login",
+                            _ => "log-action--create"
+                        };
+                        <tr>
+                            <td><span class="sa-severity-badge @SuperAdminAuditSeverityUi.CssClassForSecurity(log.Action)">@SuperAdminAuditSeverityUi.LabelForSecurity(log.Action)</span></td>
+                            <td><span class="log-timestamp">@log.PerformedAt.ToString("yyyy-MM-dd HH:mm:ss")</span></td>
+                            <td>
+                                @if (log.UserID.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark">#@log.UserID</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                            <td><span class="log-action-badge @badgeClass">@log.Action</span></td>
+                            <td><div class="log-details" title="@log.Details">@log.Details</div></td>
+                            <td><span class="text-muted">@(log.IpAddress ?? "—")</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            @if (securityTotal == 0)
+                            {
+                                <div class="text-muted mb-2">No sign-in security events recorded yet.</div>
+                            }
+                            else if (severity != "all")
+                            {
+                                <div class="text-muted mb-2">No rows for this severity filter.</div>
+                                <a asp-area="SuperAdmin" asp-controller="SuperAdmin" asp-action="LoginAttempts" asp-route-severity="all" asp-route-page="1">Show all severities</a>
+                            }
+                            else
+                            {
+                                <div class="text-muted mb-2">No rows on this page.</div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Areas/SuperAdmin/Views/Shared/_SuperAdminLogPager.cshtml")
